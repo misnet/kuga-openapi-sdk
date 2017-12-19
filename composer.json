@@ -3,7 +3,7 @@
     "description":"kuga核心SDK",
     "type":"library",
     "license": "LGPL-3.0",
-    "require-dev":{
+    "require":{
         "php":">=5.6",
         "kuga/qing":"^0.8.2",
         "phalcon/incubator": "^3.2",
