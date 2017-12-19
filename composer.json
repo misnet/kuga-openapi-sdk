@@ -10,5 +10,10 @@
         "aliyuncs/oss-sdk-php": "~2.0",
         "qcloudsms/qcloudsms_php": "0.1.*",
         "anchnet/aliyun-openapi-php-sdk":"dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kuga\\": "src"
+        }
     }
 }
