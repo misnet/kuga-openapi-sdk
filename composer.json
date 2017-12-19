@@ -1,6 +1,6 @@
 {
-    "name":"kuga/qing",
-    "description":"kuga核心类文件",
+    "name":"kuga/openapi-sdk",
+    "description":"kuga核心SDK",
     "type":"library",
     "license": "LGPL-3.0",
     "require":{
