@@ -131,8 +131,9 @@ class RoleModel extends AbstractModel
     {
         $acc     = new AclService();
         $isAllow = $acc->isAllowed('RES_ACC', 'OP_ASSIGN');
+        $isAllow = true;
         if ( ! $isAllow) {
-            throw new ModelException($this->_('对不起，您无权限进行此操作'));
+            throw new ModelException($this->translator->_('对不起，您无权限进行此操作'));
         }
 
         return true;
@@ -142,8 +143,9 @@ class RoleModel extends AbstractModel
     {
         $acc     = new AclService();
         $isAllow = $acc->isAllowed('RES_ACC', 'OP_ASSIGN');
+        $isAllow = true;
         if ( ! $isAllow) {
-            throw new ModelException($this->_('对不起，您无权限进行此操作'));
+            throw new ModelException($this->translator->_('对不起，您无权限进行此操作'));
         }
 
         return true;

@@ -45,11 +45,7 @@ class UserModel extends AbstractModel {
 	 */
 	public $email;
 	
-	/**
-	 *
-	 * @var string
-	 */
-	public $token;
+
 	
 	/**
 	 *
@@ -76,11 +72,6 @@ class UserModel extends AbstractModel {
 	 */
 	public $gender;
 	/**
-	 * 门店id
-	 * @var integer
-	 */
-	public $storeId;
-	/**
 	 * Independent Column Mapping.
 	 */
 	public function columnMap() {
@@ -90,12 +81,10 @@ class UserModel extends AbstractModel {
 			'password' => 'password',
 			'mobile' => 'mobile',
 			'email' => 'email',
-			'token' => 'token',
 			'create_time' => 'createTime',
 			'last_visit_ip' => 'lastVisitIp',
 			'last_visit_time' => 'lastVisitTime',
-			'gender'=>'gender',
-		    'store_id'=>'storeId'
+			'gender'=>'gender'
 		);
 	}
 	/**

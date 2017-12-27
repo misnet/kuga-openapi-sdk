@@ -3,14 +3,18 @@
  * 后台系统类目API
  */
 namespace Kuga\Api\Console;
+
 use Kuga\Core\Menu\MenuModel;
 use Kuga\Core\Api\ApiService;
 use Kuga\Core\Api\Exception as ApiException;
 use Kuga\Core\Api\Request;
 
 
+
 use Sts\Request\V20150401 as Sts;
 class System extends BaseApi {
+
+
     /**
      * 所有菜单列表
      */

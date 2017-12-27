@@ -79,7 +79,7 @@ class MenuService extends AbstractService {
 			if(is_array($currentRoles) && !empty($currentRoles)){
 				//根据当前用户所具有的全部角色分析，只要有一个角色有访问权限就可以访问该菜单
 				$accessableMenuIds = array();
-				$service = new Acc();
+				$service = new Acc($this->_di);
 				foreach($currentRoles as $role){
 					$hasPrivMenuIds = $service->getMenuIdsByRoleId($role['id']);
 					$accessableMenuIds = array_merge($hasPrivMenuIds,$accessableMenuIds);
@@ -103,17 +103,11 @@ class MenuService extends AbstractService {
 	}
 	/**
 	 * 检测菜单是否可以访问，菜单不在系统库中的，默认可以访问
-	 * ---这种判断只细到controller和action，参数级的无法细分
-	 * @param string $ctrl
-	 * @param string $action
+	 * @param string $url
 	 * @return boolean
 	 */
-	public function isAccessable($ctrl='',$action=''){
-	    $_separator = '-';
-	    $pattern = array('#(?<=(?:[A-Z]))([A-Z]+)([A-Z][A-z])#', '#(?<=(?:[a-z0-9]))([A-Z])#');
-        $replacement = array('\1' . $_separator . '\2', $_separator . '\1');
-        $action = preg_replace($pattern, $replacement, $action);
-        $action = strtolower($action);
+	public function isAccessable($url){
+
         $data   = $this->getAll(true,true);
         $filteredMenus  = $this->_formatMenuData($data);
         $data   = $this->getAll(true,false);
@@ -123,11 +117,11 @@ class MenuService extends AbstractService {
         $existMenu = false;
 	    if($filteredMenus){
 	        foreach($filteredMenus as $menuId=>$menu){
-	            if($menu['controller']==$ctrl && $menu['action']==$action){
+	            if($menu['url']==$url){
 	                $hasAccess = true;
 	            }elseif(isset($menu['submenu'])){
 	                foreach($menu['submenu'] as $submenu){
-	                    if($submenu['controller']==$ctrl && $submenu['action']==$action){
+	                    if($submenu['url']==$url){
 	                        $hasAccess = true;
 	                        break;
 	                    }
@@ -140,11 +134,11 @@ class MenuService extends AbstractService {
 	    }
 	    if($allMenus){
 	       foreach($allMenus as $menuId=>$menu){
-	            if($menu['controller']==$ctrl && $menu['action']==$action){
+	            if($menu['url']==$url){
 	                $existMenu = true;
 	            }elseif(isset($menu['submenu'])){
 	                foreach($menu['submenu'] as $submenu){
-	                    if($submenu['controller']==$ctrl && $submenu['action']==$action){
+	                    if($submenu['url']==$url){
 	                        $existMenu = true;
 	                        break;
 	                    }
@@ -163,85 +157,16 @@ class MenuService extends AbstractService {
 	}
 	/**
 	 * 取得菜单树
-	 * 1.系统过滤掉禁用的，当前用户没权限看的菜单
-	 * 2.针对菜单的controller和action进行补齐或继承
-	 * @throws Exception
-	 * @return Ambigous <string, multitype:unknown , multitype:, NULL, array, unknown>
+	 * @return array
 	 */
 	private function _formatMenuData($data){
 	    $returnData = array();
 	    if($data){
-	        $noActionMenu = array();
-	        $noCtrlMenu = array();
 	        foreach ($data as $item){
-	            if(!$item['controller']){
-	                //菜单未指定controller时可以继承父菜单的controller
-	                if(isset($returnData[$item['parentId']]['controller']) && $returnData[$item['parentId']]['controller'])
-	                    $item['controller'] = $returnData[$item['parentId']]['controller'];
-	                else{
-	                    $noCtrlMenu[] = $item;
-	                }
-	            }
-	            if(!$item['action']){
-	                $noActionMenu[] = $item;
-	            }
-	            if($item['action'] && $item['parameter']){
-	                $item['url'] = QING_BASEURL.$item['controller'].'/'.$item['action'].'?'.$item['parameter'];
-	            }else{
-	                $item['url'] = QING_BASEURL.$item['controller'].'/'.$item['action'];
-	            }
-	            $item['hash'] = $item['controller'].':'.$item['action'];
-	
 	            if(isset($returnData[$item['parentId']])){
 	                $returnData[$item['parentId']]['submenu'][$item['id']] = $item;
 	            }else{
 	                $returnData[$item['id']] = $item;
-	            }
-	        }
-	        //补足controller与action
-	        foreach($noCtrlMenu as $item){
-	            if(isset($returnData[$item['id']]['submenu'])){
-	                //从第一子节点补
-	                reset($returnData[$item['id']]['submenu']);
-	                $firstNode = current($returnData[$item['id']]['submenu']);
-	                $item['controller'] = $firstNode['controller'];
-	                $returnData[$item['id']]['controller'] = $item['controller'];
-	                $returnData[$item['id']]['url'] = QING_BASEURL.$item['controller'].'/'.$item['action'];
-	                $returnData[$item['id']]['hash'] = $item['controller'].':'.$item['action'];
-	                if($item['parameter']){
-	                    $returnData[$item['id']]['hash'] .='?'.$item['parameter'];
-	                    $returnData[$item['id']]['url']  .='?'.$item['parameter'];
-	                }
-	            }elseif(isset($returnData[$item['parentId']]) &&$returnData[$item['parentId']]['controller']){
-	                //从父菜单补
-	                $item['controller'] = $returnData[$item['parentId']]['controller'];
-	                $item['controller']  = QING_BASEURL.$item['controller'].'/'.$item['action'].'?'.$item['parameter'];
-	                $returnData[$item['parentId']]['submenu'][$item['id']]['url']  = QING_BASEURL.$item['controller'].'/'.$item['action'];
-	                $returnData[$item['parentId']]['submenu'][$item['id']]['hash'] = $item['controller'].':'.$item['action'];
-	                if($item['parameter']){
-	                    $returnData[$item['parentId']]['submenu'][$item['id']]['hash'] .='?'.$item['parameter'];
-	                    $returnData[$item['parentId']]['submenu'][$item['id']]['url']  .='?'.$item['parameter'];
-	                }
-	            }else{
-	                throw new ServiceException($this->_translator->_('菜单【%menuName%】未指定controller',['menuName'=>$item['name']]));
-	            }
-	        }
-	        foreach($noActionMenu as $item){
-	            if(isset($returnData[$item['id']]['submenu'])){
-	                //从第一子节点补
-	                reset($returnData[$item['id']]['submenu']);
-	                $firstNode = current($returnData[$item['id']]['submenu']);
-	                	
-	                $item['controller'] = $returnData[$item['id']]['controller'];
-	                $returnData[$item['id']]['action'] = $item['action'] = $firstNode['action'];
-	                $returnData[$item['id']]['url']    = QING_BASEURL.$item['controller'].'/'.$item['action'];
-	                $returnData[$item['id']]['hash']   = $item['controller'].':'.$item['action'];
-	                if($item['parameter']){
-	                    $returnData[$item['id']]['hash'] .='?'.$item['parameter'];
-	                    $returnData[$item['id']]['url']  .='?'.$item['parameter'];
-	                }
-	            }else{
-	                throw new ServiceException($this->translator->_('菜单【%actionName%】未指定action',['actionName'=>$item['name']]));
 	            }
 	        }
 	        	

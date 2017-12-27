@@ -255,16 +255,11 @@ class ApiService
     static private function _parseRequestApiMethod($method)
     {
         if (empty(self::$methodList)) {
-            return self::_responseError(
-                ApiException::$EXCODE_INVALID_METHOD, self::$di->getShared('translator')->_('无可用API方法')
-            );
+            throw new ApiException( self::$di->getShared('translator')->_('无可用API方法'),ApiException::$EXCODE_INVALID_METHOD);
         }
         if ( ! array_key_exists($method, self::$methodList)) {
-            return self::_responseError(
-                ApiException::$EXCODE_INVALID_METHOD, self::$di->getShared('translator')->_(
-                'API中 %action% 接口不存在', ['action' => $method]
-            )
-            );
+            throw new ApiException( self::$di->getShared('translator')->_('API中 %action% 接口不存在', ['action' => $method]),ApiException::$EXCODE_INVALID_METHOD);
+
         }
 
         return self::$methodList[$method];
@@ -367,7 +362,6 @@ class ApiService
             $params      = $req->getParams();
             $appKey      = $req->getAppKey();
             $accessToken = $req->getAccessToken();
-
             //读取可用方法
             self::_fetchValidMethod();
             $apiConfigData = self::_parseRequestApiMethod($method);
@@ -379,7 +373,7 @@ class ApiService
             list ($module, $action) = explode('.', $apiConfigData['method']);
             self::_validName($module);
             self::_validName($action);
-            $module    = ucfirst(strtolower($module));
+            //$module    = ucfirst(strtolower($module));
             $className = $apiConfigData['namespace'].'\\'.$module;
             if (isset($apiConfigData['disableFilterParams'])
                 && $apiConfigData['disableFilterParams']

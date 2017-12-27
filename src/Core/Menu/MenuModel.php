@@ -18,22 +18,11 @@ class MenuModel extends AbstractModel {
 	 * @var string
 	 */
 	public $name;
-	
 	/**
 	 *
 	 * @var string
 	 */
-	public $controller;
-	/**
-	 *
-	 * @var string
-	 */
-	public $action;
-	/**
-	 *
-	 * @var string
-	 */
-	public $parameter;
+	public $url;
 	/**
 	 *
 	 * @var integer
@@ -41,14 +30,17 @@ class MenuModel extends AbstractModel {
 	public $parentId;
 	
 	/**
-	 *
+	 * 排序值，越大越前面
 	 * @var integer
 	 */
 	public $sortByWeight;
-	
+
+    /**
+     * 菜单前面小图标样式名称
+     * @var
+     */
+
 	public $className;
-	
-    public $extName = '';
 	/**
 	 * Independent Column Mapping.
 	 */
@@ -56,14 +48,11 @@ class MenuModel extends AbstractModel {
 		return array (
 				'id' => 'id',
 				'name' => 'name',
-				'controller' => 'controller',
-				'action' => 'action',
-				'parameter' => 'parameter',
+				'url' => 'url',
 				'parent_id' => 'parentId',
 				'sort_by_weight' => 'sortByWeight',
 				'display' => 'display',
-				'class_name'=>'className',
-                'ext_name' => 'extName'
+				'class_name'=>'className'
 		);
 	}
 	
@@ -116,8 +105,8 @@ class MenuModel extends AbstractModel {
 	public function beforeSave(){
 	    if($this->id){
     	    $cond = [
-    	        'conditions'=>'controller=?1 and action=?2 and parameter=?3 and extName=?4',
-    	        'bind'=>[1=>$this->controller,2=>$this->action,3=>$this->parameter,4=>$this->extName]
+    	        'conditions'=>'url=?1',
+    	        'bind'=>[1=>$this->url]
     	    ];
     	    if($this->id){
     	        $cond['conditions'].=' and id!=?4';
@@ -128,11 +117,11 @@ class MenuModel extends AbstractModel {
     	        'parentId=?1',
                 'bind'=>[1=>$this->id]
             ]);
-	        if(!$this->controller && !$this->action && !$$this->parameter && !sizeof($childList)){
-	            throw new ModelException('当菜单有子菜单时才可以不填controller,action,parameter');
+	        if(!$this->url && !sizeof($childList)){
+	            throw new ModelException('当菜单有子菜单时才可以不填url');
 	        }
-            if($existRow && ($existRow->controller.$existRow->action.$existRow->parameter!='')){
-                throw new ModelException('存在相同扩展名、controller、action、参数的菜单【'.$existRow->name.'】');
+            if($existRow && ($existRow->url!='')){
+                throw new ModelException('存在相同URL地址的菜单【'.$existRow->name.'】');
             }
             if($this->parentId==$this->id){
                 throw new ModelException($this->translator->_('父级菜单不能是自己'));
@@ -140,7 +129,7 @@ class MenuModel extends AbstractModel {
             //只支持了2级，多级不支持
             foreach($childList as $node){
                 if($node->id==$this->parentId){
-                    throw new \Exception($this->translator->_('父级菜单不能是当前菜单的子菜单'));
+                    throw new ModelException($this->translator->_('父级菜单不能是当前菜单的子菜单'));
                 }
             }
 

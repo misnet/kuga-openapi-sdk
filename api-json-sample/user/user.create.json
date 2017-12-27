@@ -3,7 +3,7 @@
     "name":"创建用户",
     "description":"创建后台用户账号",
     "namespace":"Kuga\\Api\\Console",
-    "method":"user.create",
+    "method":"User.create",
     "accessLevel": 1,
     "request":[
         {

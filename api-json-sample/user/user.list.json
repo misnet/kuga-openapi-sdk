@@ -3,14 +3,13 @@
     "name":"获取用户列表",
     "description":"后台用户账号列表",
     "namespace":"Kuga\\Api\\Console",
-    "method":"user.userList",
+    "method":"User.userList",
     "accessLevel": 1,
     "request":[
         {
             "param":"page",
             "required":false,
             "default":1,
-            "name":"页码",
             "type":"Integer",
             "description":"页码"
         },
@@ -19,8 +18,7 @@
             "required":false,
             "default":10,
             "type":"Integer",
-            "description":"每页显示条数",
-            "name":"每页显示条数"
+            "description":"每页显示条数"
         }
     ],
     "response":{

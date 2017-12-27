@@ -3,7 +3,7 @@
     "name":"用户登录",
     "description":"",
     "namespace":"Kuga\\Api\\Console",
-    "method":"user.login",
+    "method":"User.login",
     "accessLevel": 0,
     "request":[
         {
