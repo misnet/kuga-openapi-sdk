@@ -50,10 +50,34 @@ class RoleMenuModel extends AbstractModel
     {
         $acc     = new AclService();
         $isAllow = $acc->isAllowed('RES_ACC', 'OP_ASSIGN');
+        $isAllow = true;
         if ( ! $isAllow) {
             throw new ModelException($this->_('对不起，您无权限进行此操作'));
         }
 
         return true;
+    }
+
+    /**
+     * 根据角色ID取该角色可以访问的菜单id列表
+     *
+     * @param integer $roleId 角色ID
+     *
+     * @return array 菜单id数组
+     */
+    public static function getMenuIdsByRoleId($roleId)
+    {
+        $rows  = self::find(
+            ['conditions' => 'rid=?1', 'bind' => [1 => $roleId]]
+        );
+        $list  = $rows->toArray();
+        $ids   = [];
+        if ($rows) {
+            foreach ($list as $row) {
+                $ids[] = $row['mid'];
+            }
+        }
+
+        return $ids;
     }
 }

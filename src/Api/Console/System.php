@@ -4,6 +4,7 @@
  */
 namespace Kuga\Api\Console;
 
+use Kuga\Core\Acc\Model\RoleMenuModel;
 use Kuga\Core\Menu\MenuModel;
 use Kuga\Core\Api\ApiService;
 use Kuga\Core\Api\Exception as ApiException;
@@ -17,41 +18,56 @@ class System extends BaseApi {
 
     /**
      * 所有菜单列表
+     * @param pid
+     * @param rid 角色ID，非必填
      */
     public function listMenu(){
         $data = $this->_toParamObject($this->getParams());
         $data['pid'] = intval($data['pid']);
+        $data['rid'] = intval($data['rid']);
         $result = MenuModel::find([
             'order'=>'sortByWeight desc',
             'parentId=?1',
             'bind'=>[1=>$data['pid']]
         ]);
         $list = $result->toArray();
-//        $menu = MenuModel::query();
-//
-//        $menu->columns([
-//            'id',
-//            'name',
-//            'controller',
-//            'action',
-//            'paramater',
-//            'parentId',
-//            'display',
-//            'displayWeight',
-//            'className'
-//            //'(select count(0) from '.MenuModel::class.' as b where b.parentId='.MenuModel::class.'.id) as childNum'
-//        ]);
-//        $menu->where('parentId=:pid:');
-//        $menu->bind(['pid'=>$data['pid']]);
-//        $menu->orderBy('displayWeight desc');
-//        $result = $menu->execute();
-//        $list =  $result->toArray();
+        $selectedMenuIds = [];
+        if($data['rid']){
+            $roleMenuListResult = RoleMenuModel::find([
+                'rid=?1',
+                'bind'=>[1=>$data['rid']],
+                'columns'=>['mid']
+            ]);
+            if($roleMenuListResult){
+                foreach($roleMenuListResult as $row){
+                    $selectedMenuIds[] = $row->mid;
+                }
+            }
+        }
         $list || $list = [];
+
         foreach($list as &$item){
             $childList = MenuModel::findByParentId($item['id']);
             $item['children']= $childList->toArray();
             if(!$item['children']){
                 unset($item['children']);
+            }else{
+                if($data['rid']) {
+                    foreach ($item['children'] as &$childItem) {
+                        if (in_array($childItem['id'], $selectedMenuIds)) {
+                            $childItem['allow'] = 1;
+                        } else {
+                            $childItem['allow'] = 0;
+                        }
+                    }
+                }
+            }
+            if($data['rid']) {
+                if (in_array($item['id'], $selectedMenuIds)) {
+                    $item['allow'] = 1;
+                } else {
+                    $item['allow'] = 0;
+                }
             }
         }
         return $list;

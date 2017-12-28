@@ -17,6 +17,7 @@ use Kuga\Core\Acc\Service\Acl as AclService;
  * 负责角色管理及相关权限分配
  *
  * @author dony
+ * @deprecated 本文件废弃
  *
  */
 class Acc extends AbstractService
@@ -469,7 +470,7 @@ class Acc extends AbstractService
         $model     = new RoleModel();
         $command   = $model->getModelsManager()->createQuery('delete from '.$modelName.' where id=:id:');
         $num       = $command->execute(['id' => $id]);
-        //TODO:会影响权限，所以要清缓存
+        //会影响权限，所以要清缓存
         $aclService = new AclService($this->_di);
         $aclService->removeCache();
 

@@ -100,7 +100,7 @@ class Acl extends AbstractService
     public function __construct($di = null)
     {
         parent::__construct($di);
-        $this->_accService = new Acc($di);
+        //$this->_accService = new Acc($di);
         //$session = $this->_di->getShared('session');
         //$this->setUserId($session->get('console.uid'));
     }

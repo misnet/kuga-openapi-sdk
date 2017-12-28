@@ -7,6 +7,15 @@
 - API网关会根据json文件的约定，对json文件中request部分进行校验，也会根据文件约定是否
 需要accessToken进行校验；同时json文件中约定了API处理接口的命名空间及处理的类和方法。
 
+
+初始化示例：
+```
+$customConfig = include('sample-config/config.default.php');
+//不设置默认用/tmp
+Kuga\Init::setTmpDir('/opt/tmp);
+Kuga\Init::setup($customConfig);
+```
+
 API网关调用示例：
 ```
 $requestObject = new Request($_POST);

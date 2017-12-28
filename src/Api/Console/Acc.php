@@ -2,18 +2,54 @@
 
 namespace Kuga\Api\Console;
 
+use Kuga\Core\Acc\Model\RoleMenuModel;
+use Kuga\Core\Acc\Model\RoleResModel;
 use Kuga\Core\Acc\Model\RoleUserModel;
 use Kuga\Core\Acc\Model\RoleModel;
+use Kuga\Core\Acc\Service\Acl;
 use Kuga\Core\Api\Exception as ApiException;
 use Kuga\Core\User\UserModel;
+use Kuga\Service\AclService;
 
 /**
+ * Access Controll Center API
+ * 访问控制中心API
  *
  * @package Kuga\Api\Console
  */
 class Acc extends BaseApi
 {
 
+    /**
+     * 菜单分配给指定角色
+     * @param rid
+     * @param menuIds
+     */
+    public function assignMenusToRole(){
+        $data        = $this->_toParamObject($this->getParams());
+        $data['rid'] = intval($data['rid']);
+        $roleRow     = RoleModel::findFirstById($data['rid']);
+        if ( ! $roleRow) {
+            throw new ApiException($this->translator->_('指定的角色不存在'));
+        }
+        $data['menuIds'] = trim($data['menuIds']);
+        $menuIdArray = explode(',',$data['menuIds']);
+        $model = new RoleMenuModel();
+        $sql   = 'delete from '.RoleMenuModel::class.' where rid=:rid:';
+        $query = $model->getModelsManager()->createQuery($sql);
+        $query->execute(['rid'=>$data['rid']]);
+        foreach($menuIdArray as $menuId){
+            $menuId = intval($menuId);
+            if($menuId){
+                $row = new RoleMenuModel();
+                $row->rid = $data['rid'];
+                $row->mid = $menuId;
+                $row->create();
+            }
+        }
+        $this->clearCache();
+        return true;
+    }
     /**
      * 给某些用户分配指定的角色
      */
@@ -42,6 +78,7 @@ class Acc extends BaseApi
                 }
             }
         }
+        $this->clearCache();
         return true;
     }
 
@@ -65,6 +102,8 @@ class Acc extends BaseApi
             'uid'=>$idList
         ];
         $result = $ruModel->getModelsManager()->executeQuery($sql,$bind);
+
+        $this->clearCache();
         return $result->success()===true;
     }
 
@@ -169,7 +208,41 @@ class Acc extends BaseApi
         if ( ! $result) {
             throw new ApiException($row->getMessages()[0]->getMessage());
         }
-
+        $this->clearCache();
         return $result;
+    }
+
+    /**
+     * 删除角色
+     */
+    public function deleteRole(){
+        $data       = $this->_toParamObject($this->getParams());
+        $data['id'] = intval($data['id']);
+        $row        = RoleModel::findFirstById($data['id']);
+        if ( ! $row) {
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+        $result = $row->delete();
+
+        $this->clearCache();
+        return $result;
+    }
+
+    /**
+     * 列出权限资源组
+     */
+    public function listResourcesGroup(){
+        $roleMenuModel = new RoleResModel();
+        $accConfileFile= QING_ROOT_PATH.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'acc.xml';
+        $roleMenuModel->getResourceGroup($accConfileFile);
+    }
+
+
+    /**
+     * 清缓存
+     */
+    private function clearCache(){
+        $aclService = new Acl($this->_di);
+        $aclService->removeCache();
     }
 }

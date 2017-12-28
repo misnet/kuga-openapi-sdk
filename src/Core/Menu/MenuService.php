@@ -8,7 +8,7 @@
  * @subpackage MenuService
  */
 namespace Kuga\Core\Menu;
-use Kuga\Core\Acc\Service\Acc;
+use Kuga\Core\Acc\Model\RoleMenuModel;
 use Kuga\Core\Base\AbstractService;
 use Kuga\Core\Base\ServiceException;
 
@@ -79,9 +79,8 @@ class MenuService extends AbstractService {
 			if(is_array($currentRoles) && !empty($currentRoles)){
 				//根据当前用户所具有的全部角色分析，只要有一个角色有访问权限就可以访问该菜单
 				$accessableMenuIds = array();
-				$service = new Acc($this->_di);
 				foreach($currentRoles as $role){
-					$hasPrivMenuIds = $service->getMenuIdsByRoleId($role['id']);
+					$hasPrivMenuIds = RoleMenuModel::getMenuIdsByRoleId($role['id']);
 					$accessableMenuIds = array_merge($hasPrivMenuIds,$accessableMenuIds);
 				}
 				$accessableMenuIds = array_unique($accessableMenuIds);
