@@ -8,6 +8,7 @@ use Kuga\Core\Acc\Model\RoleUserModel;
 use Kuga\Core\Acc\Model\RoleModel;
 use Kuga\Core\Acc\Service\Acl;
 use Kuga\Core\Api\Exception as ApiException;
+use Kuga\Core\Menu\MenuService;
 use Kuga\Core\User\UserModel;
 use Kuga\Service\AclService;
 
@@ -233,8 +234,51 @@ class Acc extends BaseApi
      */
     public function listResourcesGroup(){
         $roleMenuModel = new RoleResModel();
-        $accConfileFile= QING_ROOT_PATH.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'acc.xml';
-        $roleMenuModel->getResourceGroup($accConfileFile);
+        $roleMenuModel->setResourceConfigFile($this->_di->getShared('config')->acc);
+        $list = $roleMenuModel->getResourceGroup();
+        $list||$list = [];
+        $returnList=[];
+        foreach($list as $item){
+            $returnList[] = [
+                'code'=>$item['code'],
+                'text'=>$item['text'],
+                'op'=>$item['op']
+            ];
+        }
+        return $returnList;
+    }
+
+    /**
+     * 列出指定角色与权限资源的操作列表
+     * @param rid
+     * @param res
+     */
+    public function listOperationList(){
+        $data       = $this->_toParamObject($this->getParams());
+        $data['rid'] = intval($data['rid']);
+        $row        = RoleModel::findFirstById($data['rid']);
+        if ( ! $row) {
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+
+        $data['res'] = trim($data['res']);
+
+        $roleMenuModel = new RoleResModel();
+        $roleMenuModel->setResourceConfigFile($this->_di->getShared('config')->acc);
+        $resource = $roleMenuModel->getResource($data['res']);
+
+        $assignOps= $roleMenuModel->getAssignedOperators($data['rid'],$data['res']);
+        if($resource){
+            foreach($resource['op'] as &$op){
+                if(in_array($op['code'],$assignOps['allow'])){
+                    $op['allow'] = 1;
+                }else{
+                    $op['allow'] = 0;
+                }
+            }
+            unset($resource['model'],$resource['idField'],$resource['nameField']);
+        }
+        return $resource;
     }
 
 
@@ -244,5 +288,8 @@ class Acc extends BaseApi
     private function clearCache(){
         $aclService = new Acl($this->_di);
         $aclService->removeCache();
+
+        $menuService = new MenuService($this->_di);
+        $menuService->clearMenuAccessCache();
     }
 }

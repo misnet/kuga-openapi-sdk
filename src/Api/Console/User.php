@@ -128,7 +128,6 @@ class User extends BaseApi
             $aclService->setRoles($result['console.roles']);
             $menuService->setAclService($aclService);
             $returnData['menuList'] = $menuService->getAll(true, true);
-
             $returnData['accessToken'] = $accessToken;
             $returnData['uid']         = $row->uid;
             $returnData['username']    = $row->username;

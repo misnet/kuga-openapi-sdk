@@ -29,8 +29,12 @@ $_CONFIG['redis']['host'] = 'localhost';
 $_CONFIG['redis']['port'] = '6369';
 $_CONFIG['redis']['auth'] = '';
 $_CONFIG['redis']['index'] = 0;
+$_CONFIG['redis']['statsKey']  = 'KG';
 //用的队列程序
 $_CONFIG['queue']['adapter'] = 'redis';
+
+//权限控制xml文件
+$_CONFIG['acc'] = CONFIG_DIR.'/acc.xml';
 
 //双层缓存
 $cache['cache']['slow']['engine'] = 'file';

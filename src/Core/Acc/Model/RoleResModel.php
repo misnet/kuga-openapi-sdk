@@ -77,6 +77,44 @@ class RoleResModel extends AbstractModel
         return true;
     }
 
+    /**
+     * 根据角色ID与资源代码取得分配的对应的权限操作列表（分允许与禁止）
+     * Enter description here ...
+     * @param integer $roleId 角色ID
+     * @param string $resourceCode 资源代码
+     * @return array 例：array('allow'=>array('','OP_ADD','OP_REMOVE'),'deny'=>array('OP_CHECK'));
+     */
+    public function getAssignedOperators($roleId,$resourceCode){
+        $roleId = intval($roleId);
+        if(!$roleId){
+            throw new ModelException($this->translator->_('没有指定角色，无法分配权限'));
+        }
+        if(!$resourceCode){
+            throw new ModelException($this->translator->_('没有指定权限资源，无法分配权限'));
+        }
+        $rows = self::find(array(
+            'conditions'=>'rid=:rid: and (rescode=:rescode:)',
+            'bind'=>array('rid'=>$roleId,'rescode'=>$resourceCode),
+            'order'=>'id desc'
+        ));
+        $allowOperators = array();
+        $denyOperators  = array();
+        if($rows){
+            foreach($rows as $row){
+                if($row->isAllow){
+                    $allowOperators[] = $row->opcode;
+                }else{
+                    $denyOperators[]  = $row->opcode;
+                }
+            }
+        }
+        return array('allow'=>$allowOperators,'deny'=>$denyOperators);
+    }
+
+    /**
+     * 注入权限配置xml文件
+     * @param $f
+     */
     public function setResourceConfigFile($f){
         $this->accXmlFile = $f;
     }
@@ -170,7 +208,7 @@ class RoleResModel extends AbstractModel
      */
     public function getResource($code)
     {
-        $resourceList = $this->getResourceList();
+        $resourceList = $this->getResourceGroup();
         if (is_array($resourceList) && sizeof($resourceList) > 0) {
             if (array_key_exists($code, $resourceList)) {
                 return $resourceList[$code];

@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * 系统菜单Service
  *
@@ -42,7 +42,7 @@ class MenuService extends AbstractService {
             );
 	    }else{
 	        $keySeed=array('allMenu'=>true);
-	    }   
+	    }
 	    $cacheId = self::PREFIX_MENULIST.md5(serialize($keySeed));
 	    $data = $cacheEngine->get($cacheId);
 	    if($data){
@@ -52,9 +52,10 @@ class MenuService extends AbstractService {
     		$this->_findChildMenu(0,$visible);
     		//通知钩子
     		if($filterByAcc){
-    			$this->_menuObject = $this->_filterMenus($this->_menuObject);
+                $this->_menuObject= $this->_filterMenus($this->_menuObject);
     		}
     		$cacheEngine->set($cacheId,$this->_menuObject);
+    		//$this->_menuObject = $rows;
 	    }
 		return $this->_menuObject;
 	}
@@ -111,7 +112,7 @@ class MenuService extends AbstractService {
         $filteredMenus  = $this->_formatMenuData($data);
         $data   = $this->getAll(true,false);
         $allMenus  = $this->_formatMenuData($data);
-        
+
         $hasAccess = false;
         $existMenu = false;
 	    if($filteredMenus){
@@ -168,7 +169,7 @@ class MenuService extends AbstractService {
 	                $returnData[$item['id']] = $item;
 	            }
 	        }
-	        	
+
 	    }
 	    return $returnData;
 	}
@@ -202,6 +203,7 @@ class MenuService extends AbstractService {
 			$condition.=' and display=:v:';
 			$bind['v'] = $visible?1:0;
 		}
+        $rows = [];
 		$result= $model->find(array('conditions'=>$condition,'bind'=>$bind,'order'=>'sortByWeight desc'));
 		if($result){
 			$rows = $result->toArray();
@@ -210,5 +212,6 @@ class MenuService extends AbstractService {
 				$this->_findChildMenu($row['id'],$visible);
 			}
 		}
+		//return $rows;
 	}
 }

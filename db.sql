@@ -1,26 +1,4 @@
--- phpMyAdmin SQL Dump
--- version 4.6.3
--- https://www.phpmyadmin.net/
---
--- Host: mysql:3306
--- Generation Time: 2017-12-19 18:42:36
--- 服务器版本： 5.7.19
--- PHP Version: 7.1.7
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `kuga`
---
-
--- --------------------------------------------------------
 
 --
 -- 表的结构 `t_api_logs`
@@ -161,9 +139,9 @@ CREATE TABLE `t_user` (
 -- 转存表中的数据 `t_user`
 --
 
-INSERT INTO `t_user` (`uid`, `username`, `password`, `mobile`, `email`, `token`, `create_time`, `last_visit_ip`, `last_visit_time`, `gender`, `store_id`) VALUES
-(1, 'admin', '$2y$10$n2Vz/L5Fa9C1rA14Go5KkOShcivgDQCSq8G0UkepfrP2OIrsAUh.O', '13000011111', 'dony@larkair.com', '', NULL, '', 1512526971, 1, 0),
-(4, 'dony', '$2y$10$s.taaqnsgE1UNNBuIrbN5.ffR6cVymro96foLShQT1FQIMiNeFgIK', '15000333999', 'dony@tapy.org', '', 1405906107, '127.0.0.1', 1513663170, 0, 1);
+INSERT INTO `t_user` (`uid`, `username`, `password`, `mobile`, `email`,  `create_time`, `last_visit_ip`, `last_visit_time`, `gender`) VALUES
+(1, 'admin', '$2y$10$n2Vz/L5Fa9C1rA14Go5KkOShcivgDQCSq8G0UkepfrP2OIrsAUh.O', '13000011111', 'dony@larkair.com',  NULL, '', 1512526971, 1),
+(4, 'dony', '$2y$10$s.taaqnsgE1UNNBuIrbN5.ffR6cVymro96foLShQT1FQIMiNeFgIK', '15000333999', 'dony@tapy.org', 1405906107, '127.0.0.1', 1513663170, 0);
 
 --
 -- Indexes for dumped tables
