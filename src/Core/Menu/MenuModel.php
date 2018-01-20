@@ -12,7 +12,7 @@ class MenuModel extends AbstractModel {
 	 * @var integer
 	 */
 	public $id;
-	
+
 	/**
 	 *
 	 * @var string
@@ -28,19 +28,12 @@ class MenuModel extends AbstractModel {
 	 * @var integer
 	 */
 	public $parentId;
-	
+
 	/**
 	 * 排序值，越大越前面
 	 * @var integer
 	 */
 	public $sortByWeight;
-
-    /**
-     * 菜单前面小图标样式名称
-     * @var
-     */
-
-	public $className;
 	/**
 	 * Independent Column Mapping.
 	 */
@@ -51,15 +44,14 @@ class MenuModel extends AbstractModel {
 				'url' => 'url',
 				'parent_id' => 'parentId',
 				'sort_by_weight' => 'sortByWeight',
-				'display' => 'display',
-				'class_name'=>'className'
+				'display' => 'display'
 		);
 	}
-	
+
 	public function getSource() {
 		return 't_menu';
 	}
-	
+
 	public function initialize(){
 		parent::initialize();
 		//实现菜单删除时，权限分配菜单给角色的记录也删除
@@ -83,13 +75,13 @@ class MenuModel extends AbstractModel {
 	    $menuService = new MenuService();
 	    $menuService->clearMenuAccessCache();
 	}
-	
+
 	/**
 	 * Validations and business logic
 	 */
 	public function validation() {
 	    $validator = new Validation();
-	    
+
 	    $validator->add('name', new PresenceOfValidator([
 	        'model'=>$this,
 	        'message'=>$this->translator->_('菜单名必须填写')

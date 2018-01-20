@@ -29,8 +29,7 @@ CREATE TABLE `t_menu` (
   `url` varchar(100) NOT NULL DEFAULT '' comment '菜单地址',
   `parent_id` int(11) NOT NULL DEFAULT '0',
   `sort_by_weight` int(11) NOT NULL DEFAULT '0' COMMENT '显示顺序',
-  `display` enum('1','0') NOT NULL DEFAULT '1',
-  `class_name` varchar(30) DEFAULT NULL COMMENT '样式'
+  `display` enum('1','0') NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -132,7 +131,8 @@ CREATE TABLE `t_user` (
   `create_time` int(11) DEFAULT '0' COMMENT '注册时间',
   `last_visit_ip` varchar(15) NOT NULL DEFAULT '' COMMENT '最近一次访问IP',
   `last_visit_time` int(11) NOT NULL DEFAULT '0' COMMENT '最近一次访问时间',
-  `gender` tinyint(4) NOT NULL DEFAULT '1' COMMENT '性别'
+  `gender` tinyint(4) NOT NULL DEFAULT '1' COMMENT '性别',
+  `realname` varchar(50) null default '' comment '姓名',
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表';
 
 --

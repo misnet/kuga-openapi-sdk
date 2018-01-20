@@ -36,6 +36,22 @@ class User extends BaseApi
     }
 
     /**
+     * 个人资料修改
+     */
+    public function updateProfile(){
+        $data = $this->_toParamObject($this->getParams());
+        $row  = UserModel::findFirstByUid($this->_userMemberId);
+        if(!$row){
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST,$this->translator->_('用户不存在'));
+        }else{
+            if($data['password']!=$data['repassword']){
+                throw new ApiException($this->translator->_('新密码和确认密码不一致'));
+            }
+            $row->initData($data->toArray());
+            return $row->update();
+        }
+    }
+    /**
      * 更新用户
      */
     public function update()
@@ -131,6 +147,9 @@ class User extends BaseApi
             $returnData['accessToken'] = $accessToken;
             $returnData['uid']         = $row->uid;
             $returnData['username']    = $row->username;
+            $returnData['gender']    = $row->gender;
+            $returnData['mobile']    = $row->mobile;
+            $returnData['realname']    = $row->realname;
 
             //返回当前用户可以看的菜单列表
 

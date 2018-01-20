@@ -147,7 +147,7 @@ class ApiService
                     $data['newSign'] = $sign;
 
                     return self::_responseError(
-                        ApiException::$EXCODE_ERROR_SIGN, '', print_r($data)
+                        ApiException::$EXCODE_ERROR_SIGN, '', print_r($data,true)
                     );
                 } else {
                     // 参数正确

@@ -20,47 +20,47 @@ class UserModel extends AbstractModel {
 	 * @var integer
 	 */
 	public $uid;
-	
+
 	/**
 	 * username
 	 * @var string
 	 */
 	public $username;
-	
+
 	/**
 	 * password
 	 * @var string
 	 */
 	public $password;
-	
+
 	/**
 	 *
 	 * @var string
 	 */
 	public $mobile;
-	
+
 	/**
 	 *
 	 * @var string
 	 */
 	public $email;
-	
 
-	
+
+
 	/**
 	 *
 	 * @var integer
 	 */
 	public $createTime;
-	
-	
-	
+
+
+
 	/**
 	 *
 	 * @var string
 	 */
 	public $lastVisitIp;
-	
+
 	/**
 	 *
 	 * @var integer
@@ -71,6 +71,11 @@ class UserModel extends AbstractModel {
 	 * @var integer
 	 */
 	public $gender;
+    /**
+     * 姓名
+     * @var String
+     */
+	public $realname;
 	/**
 	 * Independent Column Mapping.
 	 */
@@ -84,7 +89,8 @@ class UserModel extends AbstractModel {
 			'create_time' => 'createTime',
 			'last_visit_ip' => 'lastVisitIp',
 			'last_visit_time' => 'lastVisitTime',
-			'gender'=>'gender'
+			'gender'=>'gender',
+            'realname'=>'realname'
 		);
 	}
 	/**
@@ -125,9 +131,9 @@ class UserModel extends AbstractModel {
 	 */
 	private function _setDefaultData() {
 		$this->lastVisitTime || $this->lastVisitTime = time();
-		
+
 		$this->token || $this->token = new \Phalcon\Db\RawValue ( 'default' );
-	
+
 		$this->lastVisitIp =\Qing\Lib\Utils::getClientIp();
 
 	}
@@ -144,7 +150,7 @@ class UserModel extends AbstractModel {
 	public function getPrimaryField(){
 		return 'uid';
 	}
-	
+
 	public function initialize() {
 		parent::initialize ();
 		$this->keepSnapshots(true);
