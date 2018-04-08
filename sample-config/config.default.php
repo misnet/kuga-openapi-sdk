@@ -64,6 +64,9 @@ $_CONFIG['sms']['adapter']  = 'tencent'; //采用腾讯的，要用阿里云的�
 $_CONFIG['sms']['tencent']  = CONFIG_DIR.'/sms/tencent.config.json';
 $_CONFIG['sms']['aliyun']   = CONFIG_DIR.'/sms/aliyun.config.json';
 
+//session配置
+$_CONFIG['session']=CONFIG_DIR.'/session.config.json';
+
 //多域名配置
 //当访问a.xxx.com和访问api.xxx.com一样效果
 //$_CONFIG['domainMapping'] = [
