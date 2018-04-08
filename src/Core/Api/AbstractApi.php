@@ -56,6 +56,7 @@ abstract class AbstractApi extends AbstractService
     protected $_blackProps = [];
 
     protected $_accessToken;
+    protected $_version;
 
     /**
      * 对accessToken的等级要求
@@ -91,6 +92,12 @@ abstract class AbstractApi extends AbstractService
     public function getAppKey()
     {
         return $this->_appKey;
+    }
+    public function getVersion(){
+        return $this->_version;
+    }
+    public function setVersion($v){
+        $this->_version = $v;
     }
 
     /**

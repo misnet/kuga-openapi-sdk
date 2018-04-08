@@ -72,7 +72,7 @@ class Init
         self::injectSimpleStorageService();
         self::injectFileStorageService();
         self::injectQueueService();
-        //self::injectSessionService();
+        self::injectSessionService();
 
 
         //增加插件
@@ -263,22 +263,36 @@ class Init
      */
     private static function injectSessionService(){
         $config = self::$config;
-        self::$di->setShared('session', function()  use($config){
-            if (isset($_POST['sessid'])){
-                session_id($_POST['sessid']);
+        if(file_exists($config->session)){
+            //读取配置
+            $sessionConfigContent = file_get_contents($config->session);
+            $sessonConfig = \json_decode($sessionConfigContent,true);
+            if($sessonConfig && $sessonConfig['enabled']){
+                $adapter = $sessonConfig['adapter'];
+                $sessionOption = is_array($sessonConfig['option'])?$sessonConfig['option']:[];
+                if($sessionOption){
+                    if($adapter=='redis'){
+                        $session = new \Phalcon\Session\Adapter\Redis($sessionOption);
+                        $option = $config->redis;
+                        $option = \Qing\Lib\utils::arrayExtend($option,$sessionOption);
+                    }else{
+                        $session = new \Phalcon\Session\Adapter\Files($sessionOption);
+                        $option  = $sessionOption;
+                    }
+                    self::$di->setShared('session', function()  use($option){
+                        if (isset($_POST['sessid'])){
+                            session_id($_POST['sessid']);
+                        }
+                        $session = new \Phalcon\Session\Adapter\Redis($option);
+                        ini_set('session.cookie_domain', \Qing\Lib\Application::getCookieDomain());
+                        ini_set('session.cookie_path', '/');
+                        ini_set('session.cookie_lifetime', 86400);
+                        $session->start();
+                        return $session;
+                    });
+                }
             }
-            $option = $config->redis;
-            $option['uniqueId'] = 'LA-SESS';
-            $option['persistent'] = false;
-            $option['prefix'] = 'se_';
-            $option['index'] = 2;
-            $session = new \Phalcon\Session\Adapter\Redis($option);
-            ini_set('session.cookie_domain', \Qing\Lib\Application::getCookieDomain());
-            ini_set('session.cookie_path', '/');
-            ini_set('session.cookie_lifetime', 86400);
-            $session->start();
-            return $session;
-        });
+        }
     }
 
     /**

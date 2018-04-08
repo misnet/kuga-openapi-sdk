@@ -32,6 +32,10 @@ class Request
     {
         return $this->_get('appkey');
     }
+    public function getVersion()
+    {
+        return $this->_get('version');
+    }
 
     public function getSign()
     {
@@ -57,6 +61,7 @@ class Request
         $data = $this->_unset('format', $data);
         $data = $this->_unset('sign', $data);
         $data = $this->_unset('locale', $data);
+        $data = $this->_unset('version', $data);
 
         return $data;
     }

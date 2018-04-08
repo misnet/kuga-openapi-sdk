@@ -351,7 +351,7 @@ class ApiService
      *  4.接口对应的实际类与方法要存在，不存在报错
      *  5.调用接口，并返回
      *
-     * @param \Kuga\Service\ApiV3\Request $req
+     * @param \Kuga\Core\Api\Request $req
      *
      * @return multitype
      */
@@ -467,7 +467,7 @@ class ApiService
         $time || $time = time();
         $txt  = $crypt->decryptBase64($data, md5(self::$_appKey));
         $data = @unserialize($txt);
-        if ($time - $data['time'] <= self::$_lifetime) {
+        if ($time <= $data['time']) {
             return $data['data'];
         } else {
             return null;
