@@ -241,7 +241,8 @@ class Init
         $di     = self::$di;
         self::$di->set(
             'sms', function () use ($config, $di) {
-            $smsAdapter = \Kuga\Core\Sms\SmsFactory::getAdapter($config->sms->adapter, $config->sms->adapter, $di);
+            $adapter = $config->sms->adapter;
+            $smsAdapter = \Kuga\Core\Sms\SmsFactory::getAdapter($adapter, $config->sms->{$adapter}, $di);
 
             return $smsAdapter;
         }
@@ -279,11 +280,11 @@ class Init
                         $session = new \Phalcon\Session\Adapter\Files($sessionOption);
                         $option  = $sessionOption;
                     }
-                    self::$di->setShared('session', function()  use($option){
+                    self::$di->setShared('session', function()  use($option,$session){
                         if (isset($_POST['sessid'])){
                             session_id($_POST['sessid']);
                         }
-                        $session = new \Phalcon\Session\Adapter\Redis($option);
+                        //$session = new \Phalcon\Session\Adapter\Redis($option);
                         ini_set('session.cookie_domain', \Qing\Lib\Application::getCookieDomain());
                         ini_set('session.cookie_path', '/');
                         ini_set('session.cookie_lifetime', 86400);
