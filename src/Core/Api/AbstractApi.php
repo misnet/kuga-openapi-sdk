@@ -57,6 +57,7 @@ abstract class AbstractApi extends AbstractService
 
     protected $_accessToken;
     protected $_version;
+    protected $_locale;
 
     /**
      * 对accessToken的等级要求
@@ -98,6 +99,12 @@ abstract class AbstractApi extends AbstractService
     }
     public function setVersion($v){
         $this->_version = $v;
+    }
+    public function getLocale(){
+        return $this->_locale;
+    }
+    public function setLocale($v){
+        $this->_locale = $v;
     }
 
     /**

@@ -362,6 +362,8 @@ class ApiService
             $params      = $req->getParams();
             $appKey      = $req->getAppKey();
             $accessToken = $req->getAccessToken();
+            $version     = $req->getVersion();
+            $locale      = $req->getLocale();
             //读取可用方法
             self::_fetchValidMethod();
             $apiConfigData = self::_parseRequestApiMethod($method);
@@ -405,6 +407,8 @@ class ApiService
                 $modObj->setAccessTokenRequiredLevel($level);
                 $modObj->initParams($validParams, $method);
                 $modObj->setAppKey($appKey);
+                $modObj->setVersion($version);
+                $modObj->setLocale($locale);
                 self::$apiLoggerService->setAccessMemberId(
                     self::$invokeId, $modObj->getUserMemberId()
                 );
