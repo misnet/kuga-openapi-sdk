@@ -5,11 +5,11 @@ use Kuga\Core\Base\ServiceException;
 class  SmsFactory{
     /**
      *
-     * @param $config
+     * @param $configFile
      * @param string $adapterName
      * @param null $di
-     * @return \Kuga\Service\Sms\SmsInterface
-     * @throws Exception
+     * @return \Kuga\Core\Sms\SmsInterface
+     * @throws ServiceException
      */
     public static function getAdapter($configFile,$adapterName='aliyun',$di=null){
 //        $loader = new \Phalcon\Loader();
