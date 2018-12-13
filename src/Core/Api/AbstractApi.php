@@ -131,7 +131,7 @@ abstract class AbstractApi extends AbstractService
     /**
      * 初始化API传参
      *
-     * @param      $params
+     * @param  Array  $params
      * @param null $di
      * @param null $method
      */
@@ -170,12 +170,12 @@ abstract class AbstractApi extends AbstractService
     /**
      * 将API数组参数转为Parameter对象
      *
-     * @param unknown $data
+     * @param Array $data
      * @param unknown $whiteProps
      * @param string  $restrict
      *
      * @throws Exception
-     * @return \Kuga\Service\ApiV3\Parameter
+     * @return \Kuga\Core\Api\Parameter
      */
     protected function _toParamObject($data, $whiteProps = [], $restrict = false)
     {

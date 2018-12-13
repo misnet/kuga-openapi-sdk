@@ -144,6 +144,7 @@ abstract class AbstractModel extends \Phalcon\Mvc\Model{
     /**
      * 并联查数据
      * ——当数据量大时可能会影响性能
+     * @deprecated
      * @param \Kuga\DTO\ModelCondition $cond
      * @return \Phalcon\Mvc\Model\Resultset\Simple || Array
      */
@@ -180,6 +181,7 @@ abstract class AbstractModel extends \Phalcon\Mvc\Model{
     }
     /**
      * 按ModelCondition条件统计记录
+     * @deprecated
      * @param \Kuga\DTO\ModelCondition $cond
      * @return integer
      */

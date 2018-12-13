@@ -47,7 +47,11 @@ class System extends BaseApi {
         $list || $list = [];
 
         foreach($list as &$item){
-            $childList = MenuModel::findByParentId($item['id']);
+            $childList = MenuModel::find([
+                'order'=>'sortByWeight desc',
+                'parentId=?1',
+                'bind'=>[1=>$item['id']]
+            ]);
             $item['children']= $childList->toArray();
             if(!$item['children']){
                 unset($item['children']);

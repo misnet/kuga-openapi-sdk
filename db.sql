@@ -256,3 +256,48 @@ ALTER TABLE `t_user`
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
+drop table if exists  `t_mall_itemcatalogs`;
+create table `t_mall_itemcatalogs`(
+  `id` int not null auto_increment,
+  `name` varchar(100) not null comment '类目名称',
+  `parent_id` int not null default 0 comment '上级类目ID',
+  `code` varchar(20) not null default '' comment '编码',
+  `create_time` int not null default 0 comment '创建时间',
+  `left_position` int not null default 0 comment '左边位',
+  `right_position` int not null default 0 comment '右边位',
+  `sort_weight` int not null default 0 comment '显示权重',
+  primary key(`id`),
+  index(`parent_id`),
+  index(`left_position`,`right_position`,`sort_weight`)
+)comment='类目表';
+
+drop table if exists `t_mall_propkey`;
+CREATE TABLE `t_mall_propkey` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) not null comment '属性名称',
+  `catalog_id` int(11) NOT NULL COMMENT '类目id',
+  `is_sale_prop` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否是决定sku的关键属性',
+  `form_type` tinyint DEFAULT 0 comment '表单控件形式',
+  `is_apply_code` tinyint(1) NOT NULL,
+  `is_color` tinyint default 0 comment '是否是颜色',
+  `used_for_search` tinyint default 0 comment '是否应用于搜索',
+  `sort_weight` int not null default 0 comment '显示权重',
+  primary key(`id`),
+  index(`catalog_id`,`is_sale_prop`,`used_for_search`),
+  index(`sort_weight`)
+) COMMENT='类目属性';
+
+drop table if exists `t_mall_propvalue`;
+CREATE TABLE `t_mall_propvalue` (
+  `id` int(11) NOT NULL auto_increment,
+  `code` varchar(40) NOT NULL COMMENT '编码',
+  `summary` varchar(200) DEFAULT NULL COMMENT '描述',
+  `propkey_id` int(11) NOT NULL COMMENT '属性id',
+  `sort_weight` int(11) DEFAULT NULL,
+  `propvalue` varchar(200) DEFAULT NULL,
+  `color_hex_value` varchar(30) default '' comment '颜色16进制值，最多4组，可以逗号分隔',
+  primary key(`id`),
+  index(`code`),
+  index(`propkey_id`),
+  index(`sort_weight`)
+) COMMENT='属性值';
