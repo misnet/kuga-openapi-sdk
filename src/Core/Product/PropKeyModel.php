@@ -2,6 +2,8 @@
 namespace Kuga\Core\Product;
 use Kuga\Core\Api\Exception;
 use Kuga\Core\Base\AbstractModel;
+use Kuga\Core\Base\DataExtendTrait;
+use Phalcon\Mvc\Model\Relation;
 
 /**
  * 属性名称
@@ -9,6 +11,7 @@ use Kuga\Core\Base\AbstractModel;
  * @package Kuga\Core\Product
  */
 class PropKeyModel extends AbstractModel {
+    use DataExtendTrait;
     /**
      * 输入框
      * @var integer
@@ -29,18 +32,34 @@ class PropKeyModel extends AbstractModel {
      * @var integer
      */
     const FORM_TYPE_TEXTAREA  = 4;
+    /**
+     * 媒体文件上传
+     */
+    const FORM_TYPE_MEDIAUPLOAD = 5;
+    /**
+     * 日期
+     */
+    const FORM_TYPE_DATE   = 6;
+    /**
+     * 价格
+     */
+    const FROM_TYPE_PRICE  = 7;
+    /**
+     * 是否
+     */
+    const FROM_TYPE_YESNO  = 8;
 
+
+    /**
+     * 描述
+     * @var string
+     */
+    public $summary;
     /**
      *
      * @var integer
      */
     public $id;
-
-    /**
-     * 类目id
-     * @var integer
-     */
-    public $catalogId;
 
     /**
      * 是否是颜色
@@ -49,61 +68,39 @@ class PropKeyModel extends AbstractModel {
     public $isColor;
 
     /**
-     * 是否是销售属性
-     * @var integer
-     */
-    public $isSaleProp;
-
-    /**
      * 表单控件形式
      * @var string
      */
     public $formType;
-    /**
-     * 是否可以应用于编码规则
-     * @var integer
-     */
-    public $isApplyCode;
-
-    /**
-     * 显示权重
-     * @var int
-     */
-    public $sortWeight;
-    /**
-     * 应用于搜索
-     * @var integer
-     */
-    public $usedForSearch;
     /**
      * 属性名称
      * @var string
      */
     public $name;
 
-
     public function getSource() {
         return 't_mall_propkey';
     }
     public function initialize(){
         parent::initialize();
-        $this->belongsTo('catalogId', 'ItemCatalogModel', 'id');
+        $this->hasMany('id','PropValueModel','propkeyId',[
+            'foreignKey'=>[
+                'action'=>Relation::ACTION_CASCADE
+            ]
+        ]);
     }
     /**
      * Independent Column Mapping.
      */
     public function columnMap() {
-        return array (
+        $data = array (
             'id' => 'id',
-            'catalog_id' => 'catalogId',
             'is_color' => 'isColor',
-            'is_sale_prop' => 'isSaleProp',
             'form_type' => 'formType',
-            'is_apply_code'=>'isApplyCode',
-            'sort_weight'=>'sortWeight',
-            'used_for_search'=>'usedForSearch',
+            'summary'=>'summary',
             'name'=>'name'
         );
+        return array_merge($data,$this->extendColumnMapping());
     }
     /**
      * 取得类目属性的输入形式
@@ -119,10 +116,4 @@ class PropKeyModel extends AbstractModel {
     }
 
 
-    public function beforeSave(){
-        if($this->formType!= self::FORM_TYPE_SINGLE_CHOISE && $this->isApplyCode){
-            throw new Exception($this->translator->_('只有输入形式为单选的属性才能应用于编码'));
-        }
-        return true;
-    }
 }

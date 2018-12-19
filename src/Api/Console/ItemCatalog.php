@@ -19,7 +19,7 @@ class ItemCatalog extends BaseApi {
     public function create(){
         $data                 = $this->_toParamObject($this->getParams());
         $model                = new ItemCatalogModel();
-        $model->initData($data->toArray(),['id']);
+        $model->initData($data->toArray(),['id','createTime','updateTime']);
         $result               = $model->create();
         if ( ! $result) {
             throw new ApiException($model->getMessages()[0]->getMessage());
@@ -38,7 +38,7 @@ class ItemCatalog extends BaseApi {
         if(!$catalog){
             throw new ApiException(ApiException::$EXCODE_NOTEXIST);
         }
-        $catalog->initData($data->toArray(),['id','createTime']);
+        $catalog->initData($data->toArray(),['id','createTime','updateTime']);
         $result               = $catalog->update();
         if ( ! $result) {
             throw new ApiException($catalog->getMessages()[0]->getMessage());

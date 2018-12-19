@@ -1,36 +1,31 @@
 <?php
 /**
- * Product Item Catalog Model
+ * Product Item Catalog for Marketing
  * @author Donny
  */
 
 namespace Kuga\Core\Product;
 
-use Kuga\Core\Api\Exception;
 use Kuga\Core\Base\AbstractCatalogModel;
-use Kuga\Core\Base\DataExtendTrait;
 use Phalcon\Mvc\Model\Message;
 use Phalcon\Validation;
 use Phalcon\Validation\Validator\PresenceOf as PresenceOfValidator;
-use Phalcon\Validation\Validator\Uniqueness as UniquenessValidator;
 
-class ItemCatalogModel extends AbstractCatalogModel
+class MarketCatalogModel extends AbstractCatalogModel
 {
-    use DataExtendTrait;
     /**
-     * 类目使用的属性集ID
+     * 创建时间
      * @var integer
      */
-    public $propsetId;
+    public $createTime;
     public function columnMap()
     {
         $returnData = parent::columnMap();
-        $returnData['code'] = 'code';
-        $returnData['propset_id'] = 'propsetId';
-        return array_merge($returnData,$this->extendColumnMapping());
+        $returnData['create_time'] = 'createTime';
+        return $returnData;
     }
     public function getSource() {
-        return 't_mall_itemcatalogs';
+        return 't_mall_marketcatalogs';
     }
     public function validation()
     {
@@ -58,7 +53,7 @@ class ItemCatalogModel extends AbstractCatalogModel
         return $this->validate($validator);
     }
     public function beforeCreate(){
-        parent::beforeCreate();
+        $this->createTime||$this->createTime = time();
         $this->leftPosition = $this->rightPosition = 0;
         return true;
     }

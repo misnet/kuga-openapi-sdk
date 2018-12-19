@@ -1,6 +1,9 @@
 <?php
 namespace Kuga\Core\Product;
 use Kuga\Core\Base\AbstractModel;
+use Kuga\Core\Base\DataExtendTrait;
+use Phalcon\Mvc\Model\Message;
+use Phalcon\Validation;
 
 /**
  * 属性值
@@ -8,7 +11,7 @@ use Kuga\Core\Base\AbstractModel;
  * @package Kuga\Core\Product
  */
 class PropValueModel extends AbstractModel {
-
+    use DataExtendTrait;
 
     /**
      *
@@ -21,12 +24,6 @@ class PropValueModel extends AbstractModel {
      * @var string
      */
     public $code;
-
-    /**
-     * 描述
-     * @var string
-     */
-    public $summary;
 
     /**
      * 属性KEY id
@@ -50,6 +47,21 @@ class PropValueModel extends AbstractModel {
      * @var string
      */
     public $colorHexValue;
+    /**
+     * 是否删除
+     * @var int 1是，0不是
+     */
+    public $isDeleted = 0;
+    /**
+     * 创建时间
+     * @var int
+     */
+    public $createTime = 0;
+    /**
+     * 更新时间
+     * @var int
+     */
+    public $updateTime = 0;
 
 
     public function getSource() {
@@ -59,18 +71,38 @@ class PropValueModel extends AbstractModel {
         parent::initialize();
         $this->belongsTo('propkeyId', 'PropKeyModel', 'id');
     }
+    public function validation()
+    {
+        $validator = new Validation();
+        if(!$this->id)
+            $sameNameNum = self::count([
+                'code=:n: and propkeyId=:p:',
+                'bind' => ['p' => $this->propkeyId, 'n' => $this->code]
+            ]);
+        else{
+            $sameNameNum = self::count([
+                'code=:n: and propkeyId=:p: and id!=:id:',
+                'bind' => ['p' => $this->propkeyId, 'n' => $this->code,'id'=>$this->id]
+            ]);
+        }
+        if ($sameNameNum) {
+            $this->appendMessage(new Message($this->translator->_('存在同名编码'.$this->code)));
+            return false;
+        }
+        return $this->validate($validator);
+    }
     /**
      * Independent Column Mapping.
      */
     public function columnMap() {
-        return array (
+        $data = array (
             'id' => 'id',
             'code' => 'code',
-            'summary' => 'summary',
             'propkey_id' => 'propkeyId',
             'propvalue' => 'propvalue',
             'sort_weight'=>'sortWeight',
             'color_hex_value'=>'colorHexValue'
         );
+        return array_merge($data,$this->extendColumnMapping());
     }
 }

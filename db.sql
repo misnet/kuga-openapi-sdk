@@ -256,12 +256,11 @@ ALTER TABLE `t_user`
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
-drop table if exists  `t_mall_itemcatalogs`;
-create table `t_mall_itemcatalogs`(
+drop table if exists `t_mall_marketcatalogs`;
+create table `t_mall_marketcatalogs`(
   `id` int not null auto_increment,
   `name` varchar(100) not null comment '类目名称',
   `parent_id` int not null default 0 comment '上级类目ID',
-  `code` varchar(20) not null default '' comment '编码',
   `create_time` int not null default 0 comment '创建时间',
   `left_position` int not null default 0 comment '左边位',
   `right_position` int not null default 0 comment '右边位',
@@ -269,35 +268,89 @@ create table `t_mall_itemcatalogs`(
   primary key(`id`),
   index(`parent_id`),
   index(`left_position`,`right_position`,`sort_weight`)
-)comment='类目表';
+)comment='前台类目表';
+
+
+drop table if exists  `t_mall_itemcatalogs`;
+create table `t_mall_itemcatalogs`(
+  `id` int not null auto_increment,
+  `name` varchar(100) not null comment '类目名称',
+  `parent_id` int not null default 0 comment '上级类目ID',
+  `left_position` int not null default 0 comment '左边位',
+  `right_position` int not null default 0 comment '右边位',
+  `sort_weight` int not null default 0 comment '显示权重',
+  `propset_id` int not null default 0 comment '使用的属性模板',
+  `is_deleted` tinyint default 0 comment '是否删除',
+  `create_time` int not null default 0 comment '创建时间',
+  `update_time` int not null default 0 comment '修改时间',
+  primary key(`id`),
+  index(`parent_id`,`is_deleted`),
+  index(`propset_id`),
+  index(`left_position`,`right_position`,`sort_weight`)
+)comment='后台类目表';
+
+drop table if exists `t_mall_marketcatalog_mapping`;
+create table `t_mall_marketcatalog_mapping`(
+  `id` int not null auto_increment,
+  `market_catalog_id` int not null comment '前台类目id',
+  `item_catalog_id` int not null comment '后台类目id',
+  primary key(`id`),
+  unique(`market_catalog_id`,`item_catalog_id`)
+)comment='前后台类目对应';
+
+drop table if exists `t_mall_propset`;
+create table `t_mall_propset`(
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) not null comment '属性模板名称',
+  `is_deleted` tinyint default 0 comment '是否删除',
+  `create_time` int not null default 0 comment '创建时间',
+  `update_time` int not null default 0 comment '修改时间',
+  primary key(`id`)
+)comment='属性模板';
+
+drop table if exists `t_mall_propset_keys`;
+create table `t_mall_propset_keys`(
+  `id` int(11) NOT NULL auto_increment,
+  `propset_id` int not null comment '属性集id',
+  `propkey_id` int not null comment '属性名称id',
+  `used_for_search` tinyint default 0 comment '是否应用于搜索',
+  `is_sale_prop` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否是决定sku的销售属性',
+  `is_apply_code` tinyint(1) NOT NULL comment '是否应用于编码',
+  `disabled` tinyint not null default 0 comment '禁用',
+  `sort_weight` int not null default 0 comment '显示权重',
+  `is_required` tinyint not null default 0 comment '是否必填',
+  primary key(`id`),
+  index(`propset_id`,`propkey_id`)
+)comment='属性集合的属性列表';
+
 
 drop table if exists `t_mall_propkey`;
 CREATE TABLE `t_mall_propkey` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(50) not null comment '属性名称',
-  `catalog_id` int(11) NOT NULL COMMENT '类目id',
-  `is_sale_prop` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否是决定sku的关键属性',
   `form_type` tinyint DEFAULT 0 comment '表单控件形式',
-  `is_apply_code` tinyint(1) NOT NULL,
   `is_color` tinyint default 0 comment '是否是颜色',
-  `used_for_search` tinyint default 0 comment '是否应用于搜索',
-  `sort_weight` int not null default 0 comment '显示权重',
+  `summary` varchar(200) DEFAULT NULL COMMENT '描述',
+  `is_deleted` tinyint default 0 comment '是否删除',
+  `create_time` int not null default 0 comment '创建时间',
+  `update_time` int not null default 0 comment '修改时间',
   primary key(`id`),
-  index(`catalog_id`,`is_sale_prop`,`used_for_search`),
-  index(`sort_weight`)
+  index(`is_deleted`)
 ) COMMENT='类目属性';
 
 drop table if exists `t_mall_propvalue`;
 CREATE TABLE `t_mall_propvalue` (
   `id` int(11) NOT NULL auto_increment,
   `code` varchar(40) NOT NULL COMMENT '编码',
-  `summary` varchar(200) DEFAULT NULL COMMENT '描述',
   `propkey_id` int(11) NOT NULL COMMENT '属性id',
   `sort_weight` int(11) DEFAULT NULL,
   `propvalue` varchar(200) DEFAULT NULL,
   `color_hex_value` varchar(30) default '' comment '颜色16进制值，最多4组，可以逗号分隔',
+  `is_deleted` tinyint default 0 comment '是否删除',
+  `create_time` int not null default 0 comment '创建时间',
+  `update_time` int not null default 0 comment '修改时间',
   primary key(`id`),
   index(`code`),
-  index(`propkey_id`),
+  index(`propkey_id`,`is_deleted`),
   index(`sort_weight`)
 ) COMMENT='属性值';
