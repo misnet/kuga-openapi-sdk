@@ -82,6 +82,7 @@ class ItemCatalog extends BaseApi {
         }
         return $list;
     }
+
     public function listCatalogs(){
         $data   = $this->_toParamObject($this->getParams());
         if($data['loadTree'])

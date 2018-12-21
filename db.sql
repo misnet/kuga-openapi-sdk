@@ -354,3 +354,55 @@ CREATE TABLE `t_mall_propvalue` (
   index(`propkey_id`,`is_deleted`),
   index(`sort_weight`)
 ) COMMENT='属性值';
+
+
+drop table if exists `t_mall_products`;
+CREATE TABLE `t_mall_products` (
+  `id` int(11) NOT NULL auto_increment,
+  `title` varchar(180) NOT NULL DEFAULT '' COMMENT '品名',
+  `subtitle` varchar(180)  NULL DEFAULT '' COMMENT '副标题',
+  `is_online` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否上架,1是,0不是',
+  `shortdesc` varchar(500) DEFAULT NULL COMMENT '产品摘要',
+  `listing_price` float(15,2) NOT NULL DEFAULT '0.00' COMMENT '列表中的标准价',
+  `sort_weight` int(11) DEFAULT '0' COMMENT '排序权重',
+  `barcode` varchar(60) DEFAULT NULL COMMENT '商品编码',
+  `origin_barcode` varchar(60) DEFAULT NULL COMMENT '原厂编码',
+  `propset_id` int(11) NOT NULL comment '属性集合ID',
+  `summary` varchar(255) null comment '简介描述',
+ `is_deleted` tinyint default 0 comment '是否删除',
+  `create_time` int not null default 0 comment '创建时间',
+  `update_time` int not null default 0 comment '修改时间',
+  primary key(`id`),
+  index(`propset_id`)
+) COMMENT='商品档案';
+
+drop table if exists `t_mall_product_props`;
+CREATE TABLE `t_mall_product_props` (
+  `id` int(11) NOT NULL auto_increment,
+  `product_id` int NOT NULL DEFAULT 0 COMMENT '商品id',
+  `propkey_id`  int NOT NULL DEFAULT 0 COMMENT '商品属性id',
+  `propvalue`  varchar(255)  NULL DEFAULT '' COMMENT '商品属性对应的值',
+  `is_sale_prop` tinyint default 0 comment '该属性是否是销售属性',
+  primary key(`id`),
+  index(`product_id`,`propkey_id`,`is_sale_prop`)
+)  COMMENT='商品属性表';
+
+drop table if exists `t_mall_product_desc`;
+CREATE TABLE `t_mall_product_desc` (
+  `id` int(11) NOT NULL  auto_increment,
+  `product_id` int(11) NOT NULL COMMENT '对应产品的id',
+  `content` mediumtext  NULL COMMENT '产品描述',
+  `mobile_content` mediumtext  NULL COMMENT '产品描述手机版',
+  primary key(`id`),
+  unique(`product_id`)
+) COMMENT='产品描述表';
+
+drop table if exists `t_mall_product_imgs`;
+CREATE TABLE `t_mall_product_imgs` (
+  `id` int(11) NOT NULL auto_increment,
+  `product_id` int(11) NOT NULL COMMENT '对应产品的id',
+  `is_first` tinyint(11) NOT NULL COMMENT '封面',
+  `imgurl` varchar(200) NOT NULL DEFAULT '' COMMENT '图片网址',
+  primary key(`id`),
+  unique(`product_id`,`is_first`)
+) COMMENT='产品缩略图';

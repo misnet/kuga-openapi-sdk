@@ -375,6 +375,8 @@ class Props extends BaseApi
         $searcher->bind(['psid'=>$obj->id]);
         $searcher->columns([
             'pk.name as propkeyName',
+            'pk.formType',
+            'pk.isColor',
             PropSetItemModel::class.'.id',
             PropSetItemModel::class.'.propkeyId',
             PropSetItemModel::class.'.isRequired',
@@ -387,6 +389,18 @@ class Props extends BaseApi
         $result = $searcher->execute();
         $returnData = $obj->toArray();
         $returnData['propkeyList'] = $result?$result->toArray():[];
+
+        //是否载入属性值列表
+        if($data['loadPropvalue'] && $returnData['propkeyList']){
+            foreach($returnData['propkeyList'] as &$propkey){
+                $propkey['valueList'] = PropValueModel::find([
+                    'propkeyId=:pkid: and isDeleted=0',
+                    'bind'=>[ 'pkid' => $propkey['id']],
+                    'columns'=>'id,code,colorHexValue,propvalue',
+                    'order'=>'sortWeight desc'
+                ]);
+            }
+        }
         return $returnData;
 
     }
