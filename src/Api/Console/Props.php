@@ -395,7 +395,7 @@ class Props extends BaseApi
             foreach($returnData['propkeyList'] as &$propkey){
                 $propkey['valueList'] = PropValueModel::find([
                     'propkeyId=:pkid: and isDeleted=0',
-                    'bind'=>[ 'pkid' => $propkey['id']],
+                    'bind'=>[ 'pkid' => $propkey['propkeyId']],
                     'columns'=>'id,code,colorHexValue,propvalue',
                     'order'=>'sortWeight desc'
                 ]);

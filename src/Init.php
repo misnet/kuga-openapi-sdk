@@ -179,7 +179,7 @@ class Init
                 ['host'         => $config->dbread->host, 'username' => $config->dbread->username, 'password' => $config->dbread->password,
                  'port'         => $config->dbread->port, 'dbname' => $config->dbread->dbname, 'charset' => $config->dbread->charset,
                  'options'      => [\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone ="'.date('P').'"'],
-                 'dialectClass' => '\Phalcon\Db\Dialect\MysqlExtended']
+                 'dialectClass' => self::initDialect()]
             );
             $dbRead->setEventsManager($eventsManager);
 
@@ -192,7 +192,7 @@ class Init
                 ['host'         => $config->dbwrite->host, 'username' => $config->dbwrite->username, 'password' => $config->dbwrite->password,
                  'port'         => $config->dbwrite->port, 'dbname' => $config->dbwrite->dbname, 'charset' => $config->dbwrite->charset,
                  'options'      => [\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone ="'.date('P').'"'],
-                 'dialectClass' => '\Phalcon\Db\Dialect\MysqlExtended']
+                 'dialectClass' => self::initDialect()]
             );
             $dbWrite->setEventsManager($eventsManager);
 
@@ -230,6 +230,16 @@ class Init
         \Phalcon\Mvc\Model::setup(
             ['updateSnapshotOnSave' => false,]
         );
+
+
+        $logger = new \Phalcon\Logger\Adapter\File(self::$tmpDir."/db.log");
+
+        $eventsManager->attach('db', function($event, $connection) use ($logger) {
+            if ($event->getType() == 'beforeQuery') {
+                $logger->log($connection->getSQLStatement(), \Phalcon\Logger::INFO);
+                $logger->log(print_r($connection->getSqlVariables(),true), \Phalcon\Logger::INFO);
+            }
+        });
     }
 
     /**
@@ -337,5 +347,17 @@ class Init
             $queue->setDI($di);
             return $queue;
         });
+    }
+
+    private static function initDialect(){
+        $dialect = new \Phalcon\Db\Dialect\MysqlExtended();
+        $dialect->registerCustomFunction('group_concat_orderby',function($dialect, $expression) {
+                $arguments = $expression['arguments'];
+                return sprintf(" group_concat(%s order by %s asc SEPARATOR %s) ",
+                    $dialect->getSqlExpression($arguments[0]),
+                    $dialect->getSqlExpression($arguments[1]),
+                    $dialect->getSqlExpression($arguments[2]));
+        });
+        return $dialect;
     }
 }

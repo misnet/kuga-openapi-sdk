@@ -360,16 +360,15 @@ drop table if exists `t_mall_products`;
 CREATE TABLE `t_mall_products` (
   `id` int(11) NOT NULL auto_increment,
   `title` varchar(180) NOT NULL DEFAULT '' COMMENT '品名',
-  `subtitle` varchar(180)  NULL DEFAULT '' COMMENT '副标题',
+  `seller_point` varchar(255)  NULL DEFAULT '' COMMENT '卖点',
   `is_online` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否上架,1是,0不是',
-  `shortdesc` varchar(500) DEFAULT NULL COMMENT '产品摘要',
   `listing_price` float(15,2) NOT NULL DEFAULT '0.00' COMMENT '列表中的标准价',
+  `catalog_id` int not null comment '所在后台的类目',
   `sort_weight` int(11) DEFAULT '0' COMMENT '排序权重',
   `barcode` varchar(60) DEFAULT NULL COMMENT '商品编码',
   `origin_barcode` varchar(60) DEFAULT NULL COMMENT '原厂编码',
   `propset_id` int(11) NOT NULL comment '属性集合ID',
-  `summary` varchar(255) null comment '简介描述',
- `is_deleted` tinyint default 0 comment '是否删除',
+  `is_deleted` tinyint default 0 comment '是否删除',
   `create_time` int not null default 0 comment '创建时间',
   `update_time` int not null default 0 comment '修改时间',
   primary key(`id`),
@@ -387,6 +386,19 @@ CREATE TABLE `t_mall_product_props` (
   index(`product_id`,`propkey_id`,`is_sale_prop`)
 )  COMMENT='商品属性表';
 
+drop table if exists `t_mall_product_skus`;
+CREATE TABLE `t_mall_product_skus` (
+  `id` int(11) NOT NULL auto_increment,
+  `product_id` int NOT NULL DEFAULT 0 COMMENT '商品id',
+  `sku_json`  varchar(255) NOT NULL DEFAULT '' COMMENT '商品某一条SKU规格',
+  `price`  float(11,2) NULL DEFAULT 0 COMMENT '售价',
+  `cost` float(11,2) default 0 comment '成本',
+  `original_sku_id` varchar(64) null default '' comment '原厂SKU ID',
+  primary key(`id`),
+  index(`product_id`)
+)  COMMENT='商品SKU表';
+
+
 drop table if exists `t_mall_product_desc`;
 CREATE TABLE `t_mall_product_desc` (
   `id` int(11) NOT NULL  auto_increment,
@@ -402,7 +414,8 @@ CREATE TABLE `t_mall_product_imgs` (
   `id` int(11) NOT NULL auto_increment,
   `product_id` int(11) NOT NULL COMMENT '对应产品的id',
   `is_first` tinyint(11) NOT NULL COMMENT '封面',
-  `imgurl` varchar(200) NOT NULL DEFAULT '' COMMENT '图片网址',
+  `img_url` varchar(200) NOT NULL DEFAULT '' COMMENT '图片网址',
+  `video_url` varchar(200)  NULL DEFAULT '' COMMENT '视频网址',
   primary key(`id`),
-  unique(`product_id`,`is_first`)
+  index(`product_id`,`is_first`)
 ) COMMENT='产品缩略图';

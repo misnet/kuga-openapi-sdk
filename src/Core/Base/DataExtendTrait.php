@@ -37,7 +37,7 @@ trait  DataExtendTrait{
      * @return bool
      */
     public function beforeUpdate(){
-        if(is_callable(parent,'beforeUpdate')){
+        if(is_callable('parent::beforeUpdate')){
             try{
                 parent::beforeUpdate();
             }catch(\Exception $e){

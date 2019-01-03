@@ -216,5 +216,14 @@ abstract class AbstractModel extends \Phalcon\Mvc\Model{
         }
         return $array;
     }
+    public function beforeUpdate(){
+        return true;
+    }
+    public function beforeCreate(){
+        return true;
+    }
+    public function beforeSave(){
+        return true;
+    }
 
 }
