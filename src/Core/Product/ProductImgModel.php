@@ -1,6 +1,6 @@
 <?php
 namespace Kuga\Core\Product;
-use Kuga\Core\Api\Exception;
+use Kuga\Core\Base\ModelException;
 use Kuga\Core\Base\AbstractModel;
 
 /**
@@ -54,5 +54,28 @@ class ProductImgModel extends AbstractModel {
             'img_url' =>'imgUrl',
             'video_url' =>'videoUrl'
         ];
+    }
+
+    /**
+     * 清除之后，图片与视频要清理
+     */
+    public function afterDelete(){
+        $data = [];
+        if($this->imgUrl){
+            $data[] = $this->imgUrl;
+        }
+        if($this->videoUrl){
+            $data[] = $this->videoUrl;
+        }
+        try {
+            if (!empty($data)) {
+                $queue = new \Qing\Lib\Queue();
+                //$queue = $this->getDI()->getShared('queue');
+                $queue->put('mediaRecycle', $data);
+            }
+        }catch(ModelException $e){
+            //无队列处理则跳过
+        }
+        return true;
     }
 }

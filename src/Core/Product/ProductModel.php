@@ -115,6 +115,12 @@ class ProductModel extends AbstractModel {
         $this->hasMany('id','ProductDescModel','productId',[
             ['foreignKey' => ['action' => Relation::ACTION_CASCADE], 'namespace' => 'Kuga\\Core\\Product']
         ]);
+        $this->hasMany('id','ProductPropModel','productId',[
+            ['foreignKey' => ['action' => Relation::ACTION_CASCADE], 'namespace' => 'Kuga\\Core\\Product']
+        ]);
+        $this->hasMany('id','ProductSkuModel','productId',[
+            ['foreignKey' => ['action' => Relation::ACTION_CASCADE], 'namespace' => 'Kuga\\Core\\Product']
+        ]);
     }
     /**
      * Independent Column Mapping.

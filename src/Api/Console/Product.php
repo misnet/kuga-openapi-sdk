@@ -347,12 +347,12 @@ class Product extends BaseApi{
         ]);
 
 
-        //调用属性集服务
-        $response = $this->apiRequest('product.propset.get',['id'=>$returnData['propsetId'],'loadPropvalue'=>1]);
-        $response = json_decode($response,true);
-        if($response['status']==0 && $response['data']){
-            $propkeyList = $response['data']['propkeyList'];
-        }
+        //API：调用属性集服务
+//        $response = $this->apiRequest('product.propset.get',['id'=>$returnData['propsetId'],'loadPropvalue'=>1]);
+//        $response = json_decode($response,true);
+//        if($response['status']==0 && $response['data']){
+//            $propkeyList = $response['data']['propkeyList'];
+//        }
 
         return $returnData;
 
@@ -391,5 +391,27 @@ class Product extends BaseApi{
         $returnData['page'] = $data['page'];
         $returnData['limit'] = $data['limit'];
         return $returnData;
+    }
+
+    /**
+     * 删除商品，只是做假删除
+     */
+    public function remove(){
+        $data  = $this->_toParamObject($this->getParams());
+        $model = ProductModel::findFirst([
+            'id=:id: and isDeleted=0',
+            'bind'=>['id'=>$data['id']]
+        ]);
+        if(!$model){
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+        $result = false;
+        if($data['isPhysical']){
+            $result = $model->delete();
+        }else{
+            $model->isDeleted = 1;
+            $result = $model->update();
+        }
+        return $result;
     }
 }
