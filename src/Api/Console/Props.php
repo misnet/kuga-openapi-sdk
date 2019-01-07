@@ -383,7 +383,8 @@ class Props extends BaseApi
             PropSetItemModel::class.'.isApplyCode',
             PropSetItemModel::class.'.disabled',
             PropSetItemModel::class.'.usedForSearch',
-            PropSetItemModel::class.'.isSaleProp'
+            PropSetItemModel::class.'.isSaleProp',
+            PropSetItemModel::class.'.sortWeight'
         ]);
         $searcher->orderBy(PropSetItemModel::class.'.sortWeight desc');
         $result = $searcher->execute();

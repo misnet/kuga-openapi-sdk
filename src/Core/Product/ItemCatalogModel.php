@@ -9,6 +9,7 @@ namespace Kuga\Core\Product;
 use Kuga\Core\Api\Exception;
 use Kuga\Core\Base\AbstractCatalogModel;
 use Kuga\Core\Base\DataExtendTrait;
+use Kuga\Core\Base\ModelException;
 use Phalcon\Mvc\Model\Message;
 use Phalcon\Validation;
 use Phalcon\Validation\Validator\PresenceOf as PresenceOfValidator;
@@ -17,6 +18,7 @@ use Phalcon\Validation\Validator\Uniqueness as UniquenessValidator;
 class ItemCatalogModel extends AbstractCatalogModel
 {
     use DataExtendTrait;
+    const MAX_DEPTH = 3;
     /**
      * 类目使用的属性集ID
      * @var integer
@@ -57,9 +59,49 @@ class ItemCatalogModel extends AbstractCatalogModel
         }
         return $this->validate($validator);
     }
+    public function beforeDelete(){
+        //找出最根的结点
+        $sql = 'select node.id from '.self::class.' parent,'.self::class.' node';
+        $sql.= ' where parent.id=:id: and node.rightPosition = node.leftPosition + 1 ';
+        $sql.=' and node.leftPosition>parent.leftPosition';
+        $sql.=' and node.rightPosition<parent.rightPosition';
+        $query = $this->getModelsManager()->createQuery($sql);
+        $result = $query->execute(['id'=>$this->id]);
+        $resultRow = $result->toArray();
+        $ids = [];
+        foreach($resultRow as $row){
+            $ids[] = $row['id'];
+        }
+        if(!$ids){
+            $ids[] = $this->id;
+        }
+        $productNum = ProductModel::count([
+            'catalogId in ({ids:array})',
+            'bind'=>['ids'=>$ids]
+        ]);
+        if($productNum > 0 ){
+            throw new ModelException($this->translator->_('本类目或子类目被%num%个商品引用，不可删除',['num'=>$productNum]));
+        }
+        return true;
+    }
     public function beforeCreate(){
         parent::beforeCreate();
         $this->leftPosition = $this->rightPosition = 0;
+        return true;
+    }
+    public function beforeSave(){
+        parent::beforeSave();
+        //计算深度不要超过3
+        $sql = 'select count(0) as depth from '.self::class.' parent,'.self::class.' node';
+        $sql.= ' where node.id=:id:';
+        $sql.=' and node.leftPosition>parent.leftPosition';
+        $sql.=' and node.rightPosition<parent.rightPosition group by node.id';
+        $query = $this->getModelsManager()->createQuery($sql);
+        $result = $query->execute(['id'=>$this->parentId]);
+        $resultRow = $result->toArray();
+        if(!empty($resultRow) && $resultRow[0]['depth'] + 1 >=self::MAX_DEPTH){
+            throw new ModelException($this->translator->_('类目层级深度不可超过3级'));
+        }
         return true;
     }
 

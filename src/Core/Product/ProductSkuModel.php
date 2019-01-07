@@ -2,6 +2,7 @@
 namespace Kuga\Core\Product;
 use Kuga\Core\Api\Exception;
 use Kuga\Core\Base\AbstractModel;
+use Kuga\Core\Base\ModelException;
 
 /**
  * 商品SKU Model
@@ -39,6 +40,11 @@ class ProductSkuModel extends AbstractModel {
      * @var String
      */
     public $originalSkuId;
+    /**
+     * SKU编码
+     * @var String
+     */
+    public $skuSn;
 
 
     public function getSource() {
@@ -47,6 +53,23 @@ class ProductSkuModel extends AbstractModel {
     public function initialize(){
         parent::initialize();
         $this->belongsTo('productId', 'ProductModel', 'id');
+    }
+    public function beforeSave(){
+        $cnt = 0;
+        if($this->id){
+            $cnt = self::count([
+                'productId=:pid: and originalSkuId=:osid: and id!=:id:',
+                'bind'=>['pid'=>$this->productId,'osid'=>$this->originalSkuId,'id'=>$this->id]
+            ]);
+        }else{
+            $cnt = self::count([
+                'productId=:pid: and originalSkuId=:osid:',
+                'bind'=>['pid'=>$this->productId,'osid'=>$this->originalSkuId]
+            ]);
+        }
+        if($cnt>0){
+            throw new ModelException($this->translator->_('同款产品的SKU中原厂编码不可重复'));
+        }
     }
     /**
      * Independent Column Mapping.
@@ -58,7 +81,8 @@ class ProductSkuModel extends AbstractModel {
             'sku_json' =>'skuJson',
             'price' =>'price',
             'cost' =>'cost',
-            'original_sku_id'=>'originalSkuId'
+            'original_sku_id'=>'originalSkuId',
+            'sku_sn'=>'skuSn'
         ];
     }
 }

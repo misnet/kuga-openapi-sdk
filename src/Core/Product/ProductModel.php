@@ -4,6 +4,9 @@ use Kuga\Core\Api\Exception;
 use Kuga\Core\Base\AbstractModel;
 use Kuga\Core\Base\DataExtendTrait;
 use Phalcon\Mvc\Model\Relation;
+use Phalcon\Validation\Validator\PresenceOf;
+use Phalcon\Validation\Validator\Uniqueness;
+
 /**
  * 商品Model
  * Class ProductModel
@@ -80,7 +83,6 @@ class ProductModel extends AbstractModel {
         if(!$this->catalogId){
             throw new \Exception($this->translator->_('未指定类目'));
         }
-
         $currentCatalog = ItemCatalogModel::findFirst([
             'id=:id: and isDeleted = 0',
             'bind'=>[ 'id' => $this->catalogId]
@@ -122,6 +124,32 @@ class ProductModel extends AbstractModel {
             ['foreignKey' => ['action' => Relation::ACTION_CASCADE], 'namespace' => 'Kuga\\Core\\Product']
         ]);
     }
+    public function validate(\Phalcon\ValidationInterface $validator)
+    {
+
+        $validator->add('title',new PresenceOf([
+            'model'=>$this,
+            'message'=>$this->translator->_('商品名称必须填写')
+        ]));
+
+        $validator->add('barcode',new PresenceOf([
+            'model'=>$this,
+            'message'=>$this->translator->_('商品款号必须填写')
+        ]));
+
+
+        $validator->add('listingPrice',new PresenceOf([
+            'model'=>$this,
+            'message'=>$this->translator->_('商品零售价必须填写')
+        ]));
+
+        $validator->add('barcode', new Uniqueness([
+            'model' => $this,
+            'message' => $this->translator->_('商品款号已存在')
+        ]));
+        $this->validate($validator);
+    }
+
     /**
      * Independent Column Mapping.
      */

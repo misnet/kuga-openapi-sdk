@@ -13,8 +13,47 @@ use Kuga\Core\Product\ProductImgModel;
 use Kuga\Core\Product\ProductModel;
 use Kuga\Core\Product\ProductPropModel;
 use Kuga\Core\Product\ProductSkuModel;
+use Kuga\Core\Product\PropKeyModel;
+use Kuga\Core\Product\PropSetItemModel;
+use Kuga\Core\Product\PropValueModel;
 
 class Product extends BaseApi{
+    /**
+     * 生成SKU编码
+     * @param string 商品款号 $productBarcode
+     * @param array $skuJson [{prop:?,value:?}...]
+     * @param integer $propsetId 属性集合ID
+     * @return string
+     */
+    private function createSkuSn($productBarcode,$skuJson,$propsetId){
+        $searcher = PropSetItemModel::query();
+        $searcher->join(PropKeyModel::class,'propkeyId=pk.id and pk.isDeleted=0','pk','left');
+        $searcher->where('propsetId=:psid:');
+        $searcher->bind(['psid'=>$propsetId]);
+        $searcher->orderBy(PropSetItemModel::class.'.sortWeight desc');
+        $searcher->columns(['propkeyId']);
+        $result = $searcher->execute();
+        $orderedPropkeyList  = $result->toArray();
+        $snList = [];
+        foreach($orderedPropkeyList as $propkey){
+            $valueId = 0;
+            foreach ($skuJson as $item) {
+                if($item['prop'] == $propkey['propkeyId']){
+                    $valueId = $item['value'];
+                    break;
+                }
+            }
+            $valueRow = PropValueModel::findFirst([
+                'id=:id:',
+                'bind'=>['id'=>$valueId],
+                'columns'=>['code']
+            ]);
+            if($valueRow){
+                $snList[] = $valueRow->code;
+            }
+        }
+        return $productBarcode.join('',$snList);
+    }
     /**
      * 创建产品
      */
@@ -96,6 +135,7 @@ class Product extends BaseApi{
                     }
                 }
                 $skuModel->skuJson = json_encode($skuJson);
+                $skuModel->skuSn   = $this->createSkuSn($productModel->barcode,$skuJson,$productModel->propsetId);
                 $result = $skuModel->create();
                 if(!$result){
                     $transaction->rollback($this->translator->_('商品SKU保存失败'));
@@ -251,6 +291,7 @@ class Product extends BaseApi{
                     }
                 }
                 $skuModel->skuJson = json_encode($skuJson);
+                $skuModel->skuSn   = $this->createSkuSn($productModel->barcode,$skuJson,$productModel->propsetId);
                 $result = $skuModel->save();
                 if(!$result){
                     $transaction->rollback($this->translator->_('商品SKU保存失败'));
@@ -341,7 +382,7 @@ class Product extends BaseApi{
         $returnData['skuList']   = ProductSkuModel::find([
             'productId=:pid:',
             'columns'=>[
-                'price','cost','originalSkuId','skuJson','id'
+                'price','cost','originalSkuId','skuJson','id','skuSn'
             ],
             'bind'=>['pid'=>$row['id']]
         ]);
@@ -412,6 +453,23 @@ class Product extends BaseApi{
             $model->isDeleted = 1;
             $result = $model->update();
         }
+        return $result;
+    }
+
+    /**
+     * 商品上架或下架
+     */
+    public function online(){
+        $data  = $this->_toParamObject($this->getParams());
+        $model = ProductModel::findFirst([
+            'id=:id: and isDeleted=0',
+            'bind'=>['id'=>$data['id']]
+        ]);
+        if(!$model){
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+        $model->isOnline = intval($data['isOnline'])>0?1:0;
+        $result = $model->update();
         return $result;
     }
 }

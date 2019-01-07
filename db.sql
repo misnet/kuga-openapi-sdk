@@ -365,14 +365,15 @@ CREATE TABLE `t_mall_products` (
   `listing_price` float(15,2) NOT NULL DEFAULT '0.00' COMMENT '列表中的标准价',
   `catalog_id` int not null comment '所在后台的类目',
   `sort_weight` int(11) DEFAULT '0' COMMENT '排序权重',
-  `barcode` varchar(60) DEFAULT NULL COMMENT '商品编码',
+  `barcode` varchar(60) DEFAULT not NULL COMMENT '商品编码',
   `origin_barcode` varchar(60) DEFAULT NULL COMMENT '原厂编码',
   `propset_id` int(11) NOT NULL comment '属性集合ID',
   `is_deleted` tinyint default 0 comment '是否删除',
   `create_time` int not null default 0 comment '创建时间',
   `update_time` int not null default 0 comment '修改时间',
   primary key(`id`),
-  index(`propset_id`)
+  index(`propset_id`),
+  unique(`barcode`)
 ) COMMENT='商品档案';
 
 drop table if exists `t_mall_product_props`;
@@ -391,11 +392,13 @@ CREATE TABLE `t_mall_product_skus` (
   `id` int(11) NOT NULL auto_increment,
   `product_id` int NOT NULL DEFAULT 0 COMMENT '商品id',
   `sku_json`  varchar(255) NOT NULL DEFAULT '' COMMENT '商品某一条SKU规格',
+  `sku_sn` varchar(255)  NULL DEFAULT '' COMMENT 'SKU编码',
   `price`  float(11,2) NULL DEFAULT 0 COMMENT '售价',
   `cost` float(11,2) default 0 comment '成本',
   `original_sku_id` varchar(64) null default '' comment '原厂SKU ID',
   primary key(`id`),
-  index(`product_id`)
+  index(`product_id`),
+  unique(`sku_sn`)
 )  COMMENT='商品SKU表';
 
 
