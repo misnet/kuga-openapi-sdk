@@ -1,5 +1,5 @@
 <?php
-namespace Kuga\Core\Product;
+namespace Kuga\Core\Shop;
 use Kuga\Core\Api\Exception;
 use Kuga\Core\Base\AbstractModel;
 

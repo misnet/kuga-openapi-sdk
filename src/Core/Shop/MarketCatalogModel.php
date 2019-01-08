@@ -4,7 +4,7 @@
  * @author Donny
  */
 
-namespace Kuga\Core\Product;
+namespace Kuga\Core\Shop;
 
 use Kuga\Core\Base\AbstractCatalogModel;
 use Phalcon\Mvc\Model\Message;

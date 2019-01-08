@@ -8,11 +8,11 @@ namespace Kuga\Api\Console;
 use Kuga\Core\Api\Exception as ApiException;
 use Kuga\Core\Api\Exception;
 use Kuga\Core\GlobalVar;
-use Kuga\Core\Product\ItemCatalogModel;
-use Kuga\Core\Product\PropKeyModel;
-use Kuga\Core\Product\PropSetItemModel;
-use Kuga\Core\Product\PropSetModel;
-use Kuga\Core\Product\PropValueModel;
+use Kuga\Core\Shop\ItemCatalogModel;
+use Kuga\Core\Shop\PropKeyModel;
+use Kuga\Core\Shop\PropSetItemModel;
+use Kuga\Core\Shop\PropSetModel;
+use Kuga\Core\Shop\PropValueModel;
 
 class Props extends BaseApi
 {
@@ -229,7 +229,9 @@ class Props extends BaseApi
         $data['page'] || $data['page'] = 1;
         $data['limit'] || $data['limit'] = GlobalVar::DATA_DEFAULT_LIMIT;
 
-        $total = PropKeyModel::count();
+        $total = PropKeyModel::count([
+            'isDeleted = 0'
+        ]);
         $searcher = PropKeyModel::query();
         $searcher->where(PropKeyModel::class .'.isDeleted=0');
         $searcher->columns([

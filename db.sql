@@ -422,3 +422,48 @@ CREATE TABLE `t_mall_product_imgs` (
   primary key(`id`),
   index(`product_id`,`is_first`)
 ) COMMENT='产品缩略图';
+
+drop table if exists `t_mall_stores`;
+create table `t_mall_stores`(
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) not null comment '店仓名称',
+  `country_id` int not null comment '所属国家',
+  `province_id` int not null  default 0 comment '省份ID',
+  `city_id` int not null  default 0 comment '城市ID',
+  `county_id` int not null default 0 comment '区县ID',
+  `town_id` int not null  default 0 comment '镇或街道ID',
+  `address` varchar(200) null comment '详细地址',
+  `disabled` tinyint not null default 0 comment '禁用',
+  `is_deleted` tinyint default 0 comment '是否删除',
+  `create_time` int not null default 0 comment '创建时间',
+  `update_time` int not null default 0 comment '修改时间',
+  `is_retail` tinyint not null default 0 comment '是否零售',
+  `summary` varchar(250) null default '' comment '备注',
+  primary key(`id`),
+  index(`country_id`,`province_id`,`city_id`,`county_id`,`town_id`),
+  index(`is_deleted`)
+)comment='店仓';
+
+drop table if exists `t_mall_store_rack`;
+create table `t_mall_store_rack`(
+  `id` int(11) NOT NULL auto_increment,
+  `store_id` int not null comment '店仓ID',
+  `name` varchar(60) not null comment '货架名称',
+  `code` varchar(64) null comment '货架编号',
+  primary key(`id`),
+  index(`store_id`,`code`)
+)comment='仓库货架';
+
+drop table if exists `t_mall_products_inventory`;
+CREATE TABLE `t_mall_products_inventory` (
+  `id` int(11) NOT NULL auto_increment,
+  `product_id` int(11) NOT NULL COMMENT '对应产品的id',
+  `store_id` int(11) NOT NULL COMMENT '店仓id',
+  `stock_qty` int(11) NOT NULL COMMENT '实际库存数量',
+  `preout_qty` int(11) NOT NULL COMMENT '在单数量',
+  `prein_qty` int(11) NOT NULL COMMENT '将要入库数量',
+  `sku_id` int not  NULL COMMENT 'sku id',
+  primary key(`id`),
+  index(`product_id`),
+  index(`store_id`,`sku_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='产品库存信息';

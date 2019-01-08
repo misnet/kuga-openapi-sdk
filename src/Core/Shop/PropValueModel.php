@@ -1,5 +1,5 @@
 <?php
-namespace Kuga\Core\Product;
+namespace Kuga\Core\Shop;
 use Kuga\Core\Base\AbstractModel;
 use Kuga\Core\Base\DataExtendTrait;
 use Phalcon\Mvc\Model\Message;
@@ -47,21 +47,6 @@ class PropValueModel extends AbstractModel {
      * @var string
      */
     public $colorHexValue;
-    /**
-     * 是否删除
-     * @var int 1是，0不是
-     */
-    public $isDeleted = 0;
-    /**
-     * 创建时间
-     * @var int
-     */
-    public $createTime = 0;
-    /**
-     * 更新时间
-     * @var int
-     */
-    public $updateTime = 0;
 
 
     public function getSource() {

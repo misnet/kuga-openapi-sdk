@@ -7,15 +7,15 @@
 namespace Kuga\Api\Console;
 
 use Kuga\Core\Api\Exception as ApiException;
-use Kuga\Core\Product\ItemCatalogModel;
-use Kuga\Core\Product\ProductDescModel;
-use Kuga\Core\Product\ProductImgModel;
-use Kuga\Core\Product\ProductModel;
-use Kuga\Core\Product\ProductPropModel;
-use Kuga\Core\Product\ProductSkuModel;
-use Kuga\Core\Product\PropKeyModel;
-use Kuga\Core\Product\PropSetItemModel;
-use Kuga\Core\Product\PropValueModel;
+use Kuga\Core\Shop\ItemCatalogModel;
+use Kuga\Core\Shop\ProductDescModel;
+use Kuga\Core\Shop\ProductImgModel;
+use Kuga\Core\Shop\ProductModel;
+use Kuga\Core\Shop\ProductPropModel;
+use Kuga\Core\Shop\ProductSkuModel;
+use Kuga\Core\Shop\PropKeyModel;
+use Kuga\Core\Shop\PropSetItemModel;
+use Kuga\Core\Shop\PropValueModel;
 
 class Product extends BaseApi{
     /**

@@ -1,5 +1,5 @@
 <?php
-namespace Kuga\Core\Product;
+namespace Kuga\Core\Shop;
 use Kuga\Core\Api\Exception;
 use Kuga\Core\Base\AbstractModel;
 use Kuga\Core\Base\DataExtendTrait;
@@ -66,11 +66,11 @@ class ProductModel extends AbstractModel {
      */
     public $propsetId;
     /**
-     * @var \Kuga\Core\Product\ProductImgModel
+     * @var \Kuga\Core\Shop\ProductImgModel
      */
     public $imgObject;
     /**
-     * @var \Kuga\Core\Product\ProductDescModel
+     * @var \Kuga\Core\Shop\ProductDescModel
      */
     public $contentObject;
 

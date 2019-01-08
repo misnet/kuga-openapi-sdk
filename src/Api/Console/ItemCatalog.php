@@ -8,7 +8,7 @@
 namespace Kuga\Api\Console;
 use Kuga\Core\Api\Exception as ApiException;
 use Kuga\Core\Api\Exception;
-use Kuga\Core\Product\ItemCatalogModel;
+use Kuga\Core\Shop\ItemCatalogModel;
 
 class ItemCatalog extends BaseApi {
     /**
