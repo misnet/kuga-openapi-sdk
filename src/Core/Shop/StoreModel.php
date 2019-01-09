@@ -61,10 +61,6 @@ class StoreModel extends AbstractModel {
             'model' => $this,
             'message' => $this->translator->_('请输入店仓名称')
         ]));
-        $validator->add('regionCode',new Validation\Validator\PresenceOf([
-            'model' => $this,
-            'message' => $this->translator->_('店仓所在地区未设定')
-        ]));
         return $this->validate($validator);
     }
 

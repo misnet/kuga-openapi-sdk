@@ -472,4 +472,122 @@ class Product extends BaseApi{
         $result = $model->update();
         return $result;
     }
+
+    /**
+     * 根据一串sku id，取得相关的SKU信息
+     * @return array
+     * @throws ApiException
+     */
+    public function getSkuInfoBySnIdList(){
+        $data  = $this->_toParamObject($this->getParams());
+        $searcher = ProductSkuModel::query();
+        $searcher->join(ProductModel::class,'productId=p.id','p');
+        $searcher->where(ProductSkuModel::class.'.id in ({ids:array})');
+        $searcher->bind(['ids' => explode(',',$data['ids'])]);
+        //最多1000个
+        $searcher->limit(1000,0);
+        $searcher->columns([
+            ProductSkuModel::class.'.id',
+            ProductSkuModel::class.'.price',
+            ProductSkuModel::class.'.cost',
+            ProductSkuModel::class.'.originalSkuId',
+            ProductSkuModel::class.'.skuJson',
+            ProductSkuModel::class.'.skuSn',
+            ProductSkuModel::class.'.productId',
+            'p.title'
+        ]);
+        $result = $searcher->execute();
+        $resultData = $result->toArray();
+        if($resultData){
+            foreach($resultData as &$sku){
+                $sku['cost'] = round($sku['cost'],2);
+                $sku['price'] = round($sku['price'],2);
+                $sku['skuString'] = $this->_fetchSkuString($sku['skuJson']);
+            }
+        }
+        return $resultData;
+    }
+
+    /**
+     * 取得SKU字串
+     * @param $skuJson
+     * @return string
+     */
+    private function _fetchSkuString($skuJson){
+        $skuJson = json_decode($skuJson,true);
+        if(!empty($skuJson)){
+            $keyIds = [];
+            $valueIds = [];
+            $mapping  = [];
+            $keyNameList = [];
+            $valueNameList = [];
+            $json = [];
+            foreach($skuJson as $skuProp){
+                $keyIds[]   = $skuProp['prop'];
+                $valueIds[] = $skuProp['value'];
+                $mapping['p'.$skuProp['prop']] = $skuProp['value'];
+            }
+            $keyList = PropKeyModel::find([
+                'id in ({ids:array})',
+                'bind'=>['ids'=>$keyIds],
+                'columns'=>['id','name']
+            ]);
+            $valueList = PropValueModel::find([
+                'id in ({ids:array})',
+                'bind'=>['ids'=>$valueIds],
+                'columns'=>['id','propvalue']
+            ]);
+
+            if($keyList){
+                foreach($keyList as $item){
+                    $keyNameList['p'.$item->id] = $item->name;
+                }
+            }
+            if($valueList){
+                foreach($valueList as $item){
+                    $valueNameList['p'.$item->id] = $item->propvalue;
+                }
+            }
+            foreach($mapping as $k=>$v){
+                if(isset($keyNameList[$k]) && isset($valueNameList['p'.$v])){
+                    $json[] = $keyNameList[$k].':'.$valueNameList['p'.$v];
+                }
+            }
+            $skuString= !empty($json)?join(';',$json):$this->translator->_('未知');
+        }else{
+            $skuString = $this->translator->_('未知');
+        }
+        return $skuString;
+    }
+    /**
+     * 根据SKU 编码取得SKU信息
+     */
+    public function getSkuInfoBySn(){
+        $data  = $this->_toParamObject($this->getParams());
+        $searcher = ProductSkuModel::query();
+        $searcher->join(ProductModel::class,'productId=p.id','p');
+        $searcher->where(ProductSkuModel::class.'.skuSn=:sn:');
+        $searcher->bind(['sn' => $data['sn']]);
+        $searcher->limit(0,1);
+        $searcher->columns([
+            ProductSkuModel::class.'.id',
+            ProductSkuModel::class.'.price',
+            ProductSkuModel::class.'.cost',
+            ProductSkuModel::class.'.originalSkuId',
+            ProductSkuModel::class.'.skuJson',
+            ProductSkuModel::class.'.skuSn',
+            ProductSkuModel::class.'.productId',
+            'p.title'
+        ]);
+        $result = $searcher->execute();
+        $resultData = $result->toArray();
+
+        if(!empty($resultData)){
+            $resultData = $resultData[0];
+            $resultData['cost'] = round($resultData['cost'],2);
+            $resultData['price'] = round($resultData['price'],2);
+            $resultData['skuString'] = $this->_fetchSkuString($resultData['skuJson']);
+        }
+        return $resultData;
+    }
 }

@@ -444,15 +444,7 @@ create table `t_mall_stores`(
   index(`is_deleted`)
 )comment='店仓';
 
-drop table if exists `t_mall_store_rack`;
-create table `t_mall_store_rack`(
-  `id` int(11) NOT NULL auto_increment,
-  `store_id` int not null comment '店仓ID',
-  `name` varchar(60) not null comment '货架名称',
-  `code` varchar(64) null comment '货架编号',
-  primary key(`id`),
-  index(`store_id`,`code`)
-)comment='仓库货架';
+
 
 drop table if exists `t_mall_products_inventory`;
 CREATE TABLE `t_mall_products_inventory` (
@@ -467,3 +459,29 @@ CREATE TABLE `t_mall_products_inventory` (
   index(`product_id`),
   index(`store_id`,`sku_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='产品库存信息';
+
+drop table if exists `t_mall_inventory_sheet`;
+CREATE TABLE `t_mall_inventory_sheet`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `store_id` int(11) NOT NULL COMMENT '店仓id',
+  `create_time` int(11) NOT NULL COMMENT '入库单创建时间',
+  `sheet_type` tinyint(4) NOT NULL COMMENT '单据类型1入库2出库',
+  `sheet_time` int(11) NOT NULL COMMENT '出入库时间',
+  `sheet_desc` varchar(255)   NOT NULL COMMENT '备注',
+  `user_id` int(11) NOT NULL COMMENT '操作人id',
+  `sheet_code` varchar(200) null comment '出入库单号',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX(`store_id`),
+  index(`sheet_code`),
+  index(`user_id`)
+) COMMENT = '入库单';
+
+drop table if exists `t_mall_inventory_sheet_item`;
+CREATE TABLE `t_mall_inventory_sheet_item`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sku_id` int not null comment 'SKU ID'
+  `sheet_id` int(11) NOT NULL COMMENT '入库单id',
+  `qty` int(11) NOT NULL COMMENT '入库数量',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `sheet_id`(`sheet_id`) USING BTREE
+) COMMENT = '入库单明细';

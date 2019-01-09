@@ -54,6 +54,8 @@ class Init
      */
     public static function setup($config = [],$di = null)
     {
+        //json_encode 带有小数的数字时，会变成14位长的精确值，需要修改php.ini的serialize_precision值
+        ini_set('serialize_precision',-1);
         self::$di = $di;
         if ( ! self::$di) {
             self::$di = new \Phalcon\DI\FactoryDefault();

@@ -94,15 +94,25 @@ class Store extends BaseApi
         $data = $this->_toParamObject($this->getParams());
         $data['page'] || $data['page'] = 1;
         $data['limit'] || $data['limit'] = GlobalVar::DATA_DEFAULT_LIMIT;
-
+        $where = 'isDeleted = 0';
+        $bind  = [];
+        if($data['keyword']){
+            $where.=' and name like :k:';
+            $bind['k'] = '%'.$data['keyword'].'%';
+        }
         $total = StoreModel::count([
-            'isDeleted = 0'
+            $where,
+            'bind'=>$bind
         ]);
         $searcher = StoreModel::query();
         $searcher->join(RegionModel::class,'c.id='.StoreModel::class.'.countryId','c','left');
         $searcher->join(RegionModel::class,'p.id='.StoreModel::class.'.provinceId','p','left');
         $searcher->join(RegionModel::class,'ct.id='.StoreModel::class.'.cityId','ct','left');
         $searcher->where(StoreModel::class .'.isDeleted=0');
+        if($data['keyword']){
+            $searcher->andWhere(StoreModel::class .'.name like :k:');
+            $searcher->bind(['k'=>'%'.$data['keyword'].'%']);
+        }
         $searcher->limit($data['limit'], ($data['page'] - 1) * $data['limit']);
         $searcher->orderBy(StoreModel::class.'.id desc');
         $searcher->columns([
