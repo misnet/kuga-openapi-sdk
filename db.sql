@@ -470,6 +470,7 @@ CREATE TABLE `t_mall_inventory_sheet`  (
   `sheet_desc` varchar(255)   NOT NULL COMMENT '备注',
   `user_id` int(11) NOT NULL COMMENT '操作人id',
   `sheet_code` varchar(200) null comment '出入库单号',
+  `is_checked` tinyint not null default 0 comment '是否审核，1是，0未审',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX(`store_id`),
   index(`sheet_code`),

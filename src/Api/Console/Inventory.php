@@ -7,10 +7,15 @@ namespace Kuga\Api\Console;
 
 use Kuga\Core\Api\Exception as ApiException;
 use Kuga\Core\GlobalVar;
+use Kuga\Core\Shop\InventoryModel;
 use Kuga\Core\Shop\InventorySheetItemModel;
 use Kuga\Core\Shop\InventorySheetModel;
+use Kuga\Core\Shop\ProductImgModel;
+use Kuga\Core\Shop\ProductModel;
+use Kuga\Core\Shop\ProductSkuModel;
+use Kuga\Core\Shop\StoreModel;
 
-class Inventory extends BaseApi
+class Inventory extends ShopBaseApi
 {
 
     /**
@@ -26,6 +31,7 @@ class Inventory extends BaseApi
         $model = new InventorySheetModel();
         $model->initData($data->toArray(), ['id','createTime']);
         $model->userId = $this->getUserMemberId();
+        $model->isChecked = 0;
         $model->setTransaction($transaction);
         $result = $model->create();
         if (!$result) {
@@ -70,6 +76,9 @@ class Inventory extends BaseApi
         $obj = InventorySheetModel::findFirstById($data['id']);
         if (!$obj) {
             throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+        if($obj->isChecked){
+            throw new ApiException($this->translator->_('已审核通过的出入库单不可再修改或删除'));
         }
         $obj->setTransaction($transaction);
         $obj->initData($data->toArray(), ['id','createTime']);
@@ -126,6 +135,79 @@ class Inventory extends BaseApi
     }
 
     /**
+     * 单据审核
+     * @return mixed
+     * @throws ApiException
+     */
+    public function checkedSheet(){
+        $data = $this->_toParamObject($this->getParams());
+        $obj = InventorySheetModel::findFirstById($data['id']);
+        if (!$obj) {
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+        $tx = $this->_di->getShared('transactions');
+        $transaction = $tx->get();
+        $obj->isChecked = 1;
+        $obj->setTransaction($transaction);
+        $result = $obj->update();
+        if($result){
+            //明细入库
+            $searcher  = InventorySheetItemModel::query();
+            $searcher->join(ProductSkuModel::class,'sku.id=skuId','sku');
+            $searcher->columns([
+                'sku.productId',
+                'skuId',
+                'qty'
+            ]);
+            $searcher->where('sheetId=:id:');
+            $searcher->bind(['id'=>$obj->id]);
+            $result   = $searcher->execute();
+            $itemList = $result->toArray();
+            if($itemList){
+                foreach($itemList as $item){
+                    $stock = InventoryModel::findFirst([
+                        'storeId=:stid: and skuId=:sid:',
+                        'bind'=>['stid'=>$obj->storeId,'sid'=>$item['skuId']]
+                    ]);
+                    if(!$stock){
+                        $stock = new InventoryModel();
+                        $stock->productId = $item['productId'];
+                        $stock->skuId     = $item['skuId'];
+                        $stock->storeId   = $obj->storeId;
+                        $stock->stockQty  = 0;
+                    }
+                    $stock->setTransaction($transaction);
+                    $stock->stockQty += $obj->sheetType == InventorySheetModel::TYPE_OUT ? (-1 * $item['qty']):$item['qty'];
+                    $result = $stock->save();
+                    if(!$result){
+                        $transaction->rollback('单据明细入库失败');
+                    }
+                }
+            }
+        }else{
+            $transaction->rollback('单据审核失败');
+        }
+        $transaction->commit();
+        return true;
+    }
+    /**
+     * 删除出入库单
+     * @return mixed
+     * @throws ApiException
+     */
+    public function removeSheet(){
+        $data = $this->_toParamObject($this->getParams());
+        $obj = InventorySheetModel::findFirstById($data['id']);
+        if (!$obj) {
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+        if($obj->isChecked){
+            throw new ApiException($this->translator->_('已审核通过的出入库单不可删除'));
+        }
+        return $obj->delete();
+    }
+
+    /**
      * 列出所有出入库单
      */
     public function listSheets(){
@@ -133,17 +215,24 @@ class Inventory extends BaseApi
         $data['limit']||$data['limit'] = GlobalVar::DATA_DEFAULT_LIMIT;
         $data['page']>0?$data['page']:$data['page']=1;
         $searcher = InventorySheetModel::query();
-        $searcher->orderBy('id desc');
+        $searcher->join(StoreModel::class,'storeId=store.id','store','left');
+        $searcher->orderBy(InventorySheetModel::class.'.id desc');
         $searcher->columns('count(0) as total');
         $result = $searcher->execute();
         $total  = $result->getFirst()->total;
         $searcher->columns([
-            'id',
+            InventorySheetModel::class.'.id',
             'sheetCode',
             'sheetTime',
             'sheetType',
             'sheetDesc',
-            'userId'
+            'userId',
+            'storeId',
+            'isChecked',
+            'store.name as storeName',
+            '(select count(0) from '.InventorySheetItemModel::class.' where sheetId='.InventorySheetModel::class.'.id) as skuNum',
+            '(select sum(qty) from '.InventorySheetItemModel::class.' where sheetId='.InventorySheetModel::class.'.id) as qty'
+
         ]);
         $searcher->limit($data['limit'],($data['page'] - 1) * $data['limit']);
         $result = $searcher->execute();
@@ -167,6 +256,13 @@ class Inventory extends BaseApi
         if(!$row){
             throw new ApiException(ApiException::$EXCODE_NOTEXIST);
         }
+        $storeRow = StoreModel::findFirst([
+            'id=:id:',
+            'bind'=>['id'=>$row->storeId],
+            'column'=>['name']
+        ]);
+
+
         $itemRows = InventorySheetItemModel::find([
             'sheetId=:sid:',
             'bind'=>['sid'=>$data['id']]
@@ -195,8 +291,75 @@ class Inventory extends BaseApi
             }
         }
         $returnData = $row->toArray();
+        if($storeRow){
+            $returnData['storeName'] = $storeRow->name;
+        }
         $returnData['itemList'] = $skuInfoList;
         return $returnData;
+    }
+
+    /**
+     * 库存清单
+     */
+    public function items(){
+        $data = $this->_toParamObject($this->getParams());
+        $data['limit']||$data['limit'] = GlobalVar::DATA_DEFAULT_LIMIT;
+        $data['page']>0?$data['page']:$data['page']=1;
+
+        $searcher = InventoryModel::query();
+        $searcher->join(ProductModel::class,InventoryModel::class.'.productId=p.id','p');
+        $searcher->join(ProductSkuModel::class,InventoryModel::class.'.skuId=sku.id','sku');
+        $searcher->join(StoreModel::class,InventoryModel::class.'.storeId=store.id','store');
+        $searcher->where('1=1');
+        $bind = [];
+        if($data['storeId']){
+            $searcher->andWhere('storeId=:sid:');
+            $bind['sid'] = $data['storeId'];
+        }
+        if($data['keyword']){
+            $searcher->andWhere('p.title like :q:');
+            $bind['q'] = '%'.$data['keyword'].'%';
+        }
+        $searcher->columns('count(0) as total');
+        !empty($bind)?$searcher->bind($bind):'';
+        $result = $searcher->execute();
+        $total  = $result->getFirst()->total;
+
+        $searcher->limit($data['limit'],($data['page'] - 1) * $data['limit']);
+        $searcher->orderBy(InventoryModel::class.'.id desc');
+        $searcher->columns([
+            InventoryModel::class.'.id',
+            'p.title',
+            'p.barcode',
+            InventoryModel::class.'.productId',
+            InventoryModel::class.'.skuId',
+            InventoryModel::class.'.storeId',
+            'store.name as storeName',
+            InventoryModel::class.'.stockQty',
+            InventoryModel::class.'.preoutQty',
+            InventoryModel::class.'.preinQty',
+            'sku.skuJson',
+            'sku.skuSn',
+            'sku.price',
+            'sku.cost',
+            'sku.originalSkuId',
+            '(select imgUrl from '.ProductImgModel::class.' where '.ProductImgModel::class.'.productId=p.id and isFirst=1) as firstImgUrl'
+        ]);
+        $result = $searcher->execute();
+        $list   = $result->toArray();
+        if($list){
+            foreach($list as &$sku){
+                $sku['skuString'] = $this->_fetchSkuString($sku['skuJson']);
+            }
+        }
+        return [
+            'total'=>$total,
+            'list' =>$list,
+            'page' => $data['page'],
+            'limit'=> $data['limit']
+        ];
+
+
     }
 
 

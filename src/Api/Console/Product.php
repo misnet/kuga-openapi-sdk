@@ -17,7 +17,7 @@ use Kuga\Core\Shop\PropKeyModel;
 use Kuga\Core\Shop\PropSetItemModel;
 use Kuga\Core\Shop\PropValueModel;
 
-class Product extends BaseApi{
+class Product extends ShopBaseApi {
     /**
      * 生成SKU编码
      * @param string 商品款号 $productBarcode
@@ -410,11 +410,23 @@ class Product extends BaseApi{
         $model    = new ProductModel();
         $searcher = $model::query();
         $searcher->where(ProductModel::class.'.isDeleted=0');
+        $bind = [];
+        if($data['keyword']){
+            $searcher->andWhere('title like :q: or barcode like :q:');
+            $bind['q'] = '%'.$data['keyword'].'%';
+        }
+        if($data['isOnline']!==null && $data['isOnline']>=0){
+            $searcher->andWhere('isOnline=:o:');
+            $bind['o'] = $data['isOnline'];
+        }
         $columns  = array_values($model->columnMap());
         unset($columns['isDeleted']);
         $columns  = array_map(function($v){
             return ProductModel::class.'.'.$v;
         },$columns);
+        if($bind){
+            $searcher->bind($bind);
+        }
         $searcher->columns(['count(0) as total']);
         $result = $searcher->execute();
         $returnData['total']  = $result->getFirst()->total;
@@ -422,7 +434,8 @@ class Product extends BaseApi{
         $columns[] = '(select imgUrl from '.ProductImgModel::class.' where productId='.ProductModel::class.'.id and isFirst=1) as firstImgUrl';
         //$columns[] = '(select group_concat(name order by leftPosition asc separator :sp:) from '.ItemCatalogModel::class.' where leftPosition<=(select leftPosition from '.ItemCatalogModel::class.' where id='.ProductModel::class.'.id)  and rightPosition>=(select rightPosition from '.ItemCatalogModel::class.' where id='.ProductModel::class.'.id) order by leftPosition asc) as catalogNamePath';
         $columns[] = '(select group_concat_orderby(name,leftPosition,:sp:) from '.ItemCatalogModel::class.' where leftPosition<=(select leftPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId)  and rightPosition>=(select rightPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId) order by leftPosition asc) as catalogNamePath';
-        $searcher->bind(['sp'=>"/"]);
+        $bind['sp']= "/";
+        $searcher->bind($bind);
         $searcher->columns($columns);
         $searcher->limit($data['limit'],($data['page'] - 1) * $data['limit']);
         $searcher->orderBy(ProductModel::class.'.sortWeight desc,'.ProductModel::class.'.id desc');
@@ -508,57 +521,7 @@ class Product extends BaseApi{
         return $resultData;
     }
 
-    /**
-     * 取得SKU字串
-     * @param $skuJson
-     * @return string
-     */
-    private function _fetchSkuString($skuJson){
-        $skuJson = json_decode($skuJson,true);
-        if(!empty($skuJson)){
-            $keyIds = [];
-            $valueIds = [];
-            $mapping  = [];
-            $keyNameList = [];
-            $valueNameList = [];
-            $json = [];
-            foreach($skuJson as $skuProp){
-                $keyIds[]   = $skuProp['prop'];
-                $valueIds[] = $skuProp['value'];
-                $mapping['p'.$skuProp['prop']] = $skuProp['value'];
-            }
-            $keyList = PropKeyModel::find([
-                'id in ({ids:array})',
-                'bind'=>['ids'=>$keyIds],
-                'columns'=>['id','name']
-            ]);
-            $valueList = PropValueModel::find([
-                'id in ({ids:array})',
-                'bind'=>['ids'=>$valueIds],
-                'columns'=>['id','propvalue']
-            ]);
 
-            if($keyList){
-                foreach($keyList as $item){
-                    $keyNameList['p'.$item->id] = $item->name;
-                }
-            }
-            if($valueList){
-                foreach($valueList as $item){
-                    $valueNameList['p'.$item->id] = $item->propvalue;
-                }
-            }
-            foreach($mapping as $k=>$v){
-                if(isset($keyNameList[$k]) && isset($valueNameList['p'.$v])){
-                    $json[] = $keyNameList[$k].':'.$valueNameList['p'.$v];
-                }
-            }
-            $skuString= !empty($json)?join(';',$json):$this->translator->_('未知');
-        }else{
-            $skuString = $this->translator->_('未知');
-        }
-        return $skuString;
-    }
     /**
      * 根据SKU 编码取得SKU信息
      */

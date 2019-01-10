@@ -1,6 +1,7 @@
 <?php
 namespace Kuga\Core\Shop;
 use Kuga\Core\Base\AbstractModel;
+use Phalcon\Mvc\Model\Relation;
 use Phalcon\Validation;
 
 /**
@@ -10,6 +11,8 @@ use Phalcon\Validation;
  */
 class InventorySheetModel extends AbstractModel {
 
+    const TYPE_IN  = 1;
+    const TYPE_OUT = 2;
     /**
      *
      * @var integer
@@ -53,6 +56,11 @@ class InventorySheetModel extends AbstractModel {
      * @var integer
      */
     public $storeId;
+    /**
+     * 是否审通过
+     * @var int 1是，0不是
+     */
+    public $isChecked = 0;
 
 
     public function getSource() {
@@ -60,6 +68,12 @@ class InventorySheetModel extends AbstractModel {
     }
     public function initialize(){
         parent::initialize();
+        $this->hasMany('id','InventorySheetItemModel','sheetId',[
+            'foreignKey' => [
+                'action' => Relation::ACTION_CASCADE
+            ],
+            'namespace'=>'\Kuga\Core\Shop'
+        ]);
     }
     public function validate(\Phalcon\ValidationInterface $validator)
     {
@@ -86,7 +100,8 @@ class InventorySheetModel extends AbstractModel {
             'sheet_desc'=>'sheetDesc',
             'sheet_time'=>'sheetTime',
             'user_id'=>'userId',
-            'sheet_code'=>'sheetCode'
+            'sheet_code'=>'sheetCode',
+            'is_checked'=>'isChecked'
         );
     }
 

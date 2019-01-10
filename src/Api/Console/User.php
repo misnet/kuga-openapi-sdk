@@ -99,6 +99,22 @@ class User extends BaseApi
     }
 
     /**
+     * 改密码
+     */
+    public function changePassword(){
+        $data = $this->_toParamObject($this->getParams());
+        if(!$data['password']){
+            throw new ApiException($this->translator->_('没设置新密码'));
+        }
+        $row  = UserModel::findFirstByUid($this->getUserMemberId());
+        if(!$row){
+            throw new ApiException(ApiException::$EXCODE_NOTEXIST);
+        }
+        $row->passwd = $data['password'];
+        return $row->update();
+    }
+
+    /**
      * 显示用户列表
      *
      * @return array

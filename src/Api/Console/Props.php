@@ -334,10 +334,10 @@ class Props extends BaseApi
     public function listPropSets()
     {
         $data = $this->_toParamObject($this->getParams());
-        $data['page'] || $data['page'] = 1;
+        $data['page']  || $data['page'] = 1;
         $data['limit'] || $data['limit'] = GlobalVar::DATA_DEFAULT_LIMIT;
         $total = PropSetModel::count([
-            'condition' => 'isDeleted=0'
+            'isDeleted=0'
         ]);
         $searcher = PropSetModel::query();
         $searcher->columns([

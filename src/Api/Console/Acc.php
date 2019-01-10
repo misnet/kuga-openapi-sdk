@@ -8,6 +8,7 @@ use Kuga\Core\Acc\Model\RoleUserModel;
 use Kuga\Core\Acc\Model\RoleModel;
 use Kuga\Core\Acc\Service\Acl;
 use Kuga\Core\Api\Exception as ApiException;
+use Kuga\Core\GlobalVar;
 use Kuga\Core\Menu\MenuService;
 use Kuga\Core\User\UserModel;
 use Kuga\Service\AclService;
@@ -157,7 +158,7 @@ class Acc extends BaseApi
         $data          = $this->_toParamObject($this->getParams());
         $data['page']  = intval($data['page']);
         $data['limit'] = intval($data['limit']);
-        $data['limit'] || $data['limit'] = 10;
+        $data['limit'] || $data['limit'] = GlobalVar::DATA_DEFAULT_LIMIT;
         $data['page'] || $data['page'] = 1;
 
         $searcher = RoleModel::query();
