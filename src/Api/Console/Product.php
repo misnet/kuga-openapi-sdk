@@ -328,12 +328,12 @@ class Product extends ShopBaseApi {
         $model = new ProductModel();
         $columns  = array_values($model->columnMap());
         unset($columns['isDeleted']);
-        $columns[] = '(select group_concat_orderby(name,leftPosition,:sp:) from '.ItemCatalogModel::class.' where leftPosition<=(select leftPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId)  and rightPosition>=(select rightPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId) order by leftPosition asc) as catalogNamePath';
+        $columns[] = '(select group_concat_orderby(name,leftPosition,"/") from '.ItemCatalogModel::class.' where leftPosition<=(select leftPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId)  and rightPosition>=(select rightPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId) order by leftPosition asc) as catalogNamePath';
 
         $searcher  = $model::query();
         $searcher->limit(1,0);
         $searcher->columns($columns);
-        $searcher->bind(['id'=>$data['id'],'sp'=>"/"]);
+        $searcher->bind(['id'=>$data['id']]);
         $searcher->where(ProductModel::class.'.id=:id: and '.ProductModel::class.'.isDeleted=0');
         $result= $searcher->execute();
         $rows  = $result?$result->toArray():[];
@@ -412,8 +412,9 @@ class Product extends ShopBaseApi {
         $searcher->where(ProductModel::class.'.isDeleted=0');
         $bind = [];
         if($data['keyword']){
-            $searcher->andWhere('title like :q: or barcode like :q:');
+            $searcher->andWhere('title like :q: or barcode like :q2:');
             $bind['q'] = '%'.$data['keyword'].'%';
+            $bind['q2'] = '%'.$data['keyword'].'%';
         }
         if($data['isOnline']!==null && $data['isOnline']>=0){
             $searcher->andWhere('isOnline=:o:');
@@ -433,8 +434,8 @@ class Product extends ShopBaseApi {
 
         $columns[] = '(select imgUrl from '.ProductImgModel::class.' where productId='.ProductModel::class.'.id and isFirst=1) as firstImgUrl';
         //$columns[] = '(select group_concat(name order by leftPosition asc separator :sp:) from '.ItemCatalogModel::class.' where leftPosition<=(select leftPosition from '.ItemCatalogModel::class.' where id='.ProductModel::class.'.id)  and rightPosition>=(select rightPosition from '.ItemCatalogModel::class.' where id='.ProductModel::class.'.id) order by leftPosition asc) as catalogNamePath';
-        $columns[] = '(select group_concat_orderby(name,leftPosition,:sp:) from '.ItemCatalogModel::class.' where leftPosition<=(select leftPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId)  and rightPosition>=(select rightPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId) order by leftPosition asc) as catalogNamePath';
-        $bind['sp']= "/";
+        $columns[] = '(select group_concat_orderby(name,leftPosition,"/") from '.ItemCatalogModel::class.' where leftPosition<=(select leftPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId)  and rightPosition>=(select rightPosition from '.ItemCatalogModel::class.' where '.ItemCatalogModel::class.'.id='.ProductModel::class.'.catalogId) order by leftPosition asc) as catalogNamePath';
+        //$bind['sp']= "/";
         $searcher->bind($bind);
         $searcher->columns($columns);
         $searcher->limit($data['limit'],($data['page'] - 1) * $data['limit']);

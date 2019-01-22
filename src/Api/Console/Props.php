@@ -74,6 +74,7 @@ class Props extends BaseApi
     private function _updatePropKeyInPropSet($propKeyList,$propsetId,$transaction){
         if(!empty($propKeyList) && is_array($propKeyList)){
             $i = sizeof($propKeyList);
+            $salePropLen = 0;
             $validPropKeyIdList = [];
             foreach($propKeyList as $propkey){
                 if(intval($propkey['id'])==0||!preg_match('/^(\d+)$/',$propkey['id'])){
@@ -99,6 +100,12 @@ class Props extends BaseApi
                 $objRow->isSaleProp      = intval($propkey['isSaleProp']);
                 $objRow->isRequired      = intval($propkey['isRequired']);
                 $objRow->sortWeight    = $i;
+                if($objRow->isSaleProp){
+                    $salePropLen++;
+                }
+                if($salePropLen > 3){
+                    $transaction->rollback($this->translator->_('销售属性不可超过3个'));
+                }
                 $result = $objRow->save();
                 $i--;
                 if(!$result){

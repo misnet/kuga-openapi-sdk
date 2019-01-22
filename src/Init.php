@@ -180,11 +180,13 @@ class Init
             $dbRead = new \Phalcon\Db\Adapter\Pdo\Mysql(
                 ['host'         => $config->dbread->host, 'username' => $config->dbread->username, 'password' => $config->dbread->password,
                  'port'         => $config->dbread->port, 'dbname' => $config->dbread->dbname, 'charset' => $config->dbread->charset,
-                 'options'      => [\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone ="'.date('P').'"'],
+                 'options'      => [
+                     \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone ="'.date('P').'"'],
                  'dialectClass' => self::initDialect()]
             );
             $dbRead->setEventsManager($eventsManager);
-
+            $dbRead->getInternalHandler()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+            $dbRead->getInternalHandler()->setAttribute(\PDO::ATTR_STRINGIFY_FETCHES, false);
             return $dbRead;
         }
         );
@@ -197,6 +199,8 @@ class Init
                  'dialectClass' => self::initDialect()]
             );
             $dbWrite->setEventsManager($eventsManager);
+            $dbWrite->getInternalHandler()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+            $dbWrite->getInternalHandler()->setAttribute(\PDO::ATTR_STRINGIFY_FETCHES, false);
 
             return $dbWrite;
         }
