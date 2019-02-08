@@ -66,6 +66,12 @@ class ProductModel extends AbstractModel {
      */
     public $propsetId;
     /**
+     * 引用产品ID
+     * @var int
+     */
+    public $refProductId = 0;
+
+    /**
      * @var \Kuga\Core\Shop\ProductImgModel
      */
     public $imgObject;
@@ -73,6 +79,8 @@ class ProductModel extends AbstractModel {
      * @var \Kuga\Core\Shop\ProductDescModel
      */
     public $contentObject;
+
+
 
     /**
      * 保存之前，验证类目的有效性，并指定了类目使用的属性集ID
@@ -164,7 +172,8 @@ class ProductModel extends AbstractModel {
             'origin_barcode' =>'originBarcode',
             'listing_price' =>'listingPrice',
             'is_online' =>'isOnline',
-            'catalog_id'=>'catalogId'
+            'catalog_id'=>'catalogId',
+            'ref_product_id'=>'refProductId'
         );
         return array_merge($data,$this->extendColumnMapping());
     }

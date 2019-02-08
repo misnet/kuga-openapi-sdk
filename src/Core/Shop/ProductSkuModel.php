@@ -58,12 +58,12 @@ class ProductSkuModel extends AbstractModel {
         $cnt = 0;
         if($this->id){
             $cnt = self::count([
-                'productId=:pid: and originalSkuId=:osid: and id!=:id:',
+                'productId=:pid: and originalSkuId!="" and originalSkuId=:osid: and id!=:id:',
                 'bind'=>['pid'=>$this->productId,'osid'=>$this->originalSkuId,'id'=>$this->id]
             ]);
         }else{
             $cnt = self::count([
-                'productId=:pid: and originalSkuId=:osid:',
+                'productId=:pid: and originalSkuId!="" and originalSkuId=:osid:',
                 'bind'=>['pid'=>$this->productId,'osid'=>$this->originalSkuId]
             ]);
         }

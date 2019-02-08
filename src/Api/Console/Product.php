@@ -11,6 +11,7 @@ use Kuga\Core\Shop\ItemCatalogModel;
 use Kuga\Core\Shop\ProductDescModel;
 use Kuga\Core\Shop\ProductImgModel;
 use Kuga\Core\Shop\ProductModel;
+use Kuga\Core\Shop\ProductPrintModel;
 use Kuga\Core\Shop\ProductPropModel;
 use Kuga\Core\Shop\ProductSkuModel;
 use Kuga\Core\Shop\PropKeyModel;
@@ -386,7 +387,14 @@ class Product extends ShopBaseApi {
             ],
             'bind'=>['pid'=>$row['id']]
         ]);
-
+        if($data['loadPrintSetting']){
+            $settingList = ProductPrintModel::find([
+                'productId=:pid:',
+                'bind'=>['pid'=>$row['id']],
+                'orderBy'=>'printMethod asc,sortWeight desc'
+            ]);
+            $returnData['printSetting'] = $settingList->toArray();
+        }
 
         //API：调用属性集服务
 //        $response = $this->apiRequest('product.propset.get',['id'=>$returnData['propsetId'],'loadPropvalue'=>1]);
@@ -419,6 +427,16 @@ class Product extends ShopBaseApi {
         if($data['isOnline']!==null && $data['isOnline']>=0){
             $searcher->andWhere('isOnline=:o:');
             $bind['o'] = $data['isOnline'];
+        }
+        if($data['refProductId']!==null && $data['refProductId']>=0){
+            $searcher->andWhere('refProductId=:rep:');
+            $bind['rep'] = $data['refProductId'];
+        }
+        if($data['catalogId']!==null && $data['catalogId']>0){
+            $searcher->join(ItemCatalogModel::class,'catalogId=ic.id','ic');
+            $searcher->join(ItemCatalogModel::class,'ic.leftPosition between node.leftPosition and node.rightPosition','node');
+            $searcher->andWhere('catalogId=:cid:');
+            $bind['cid'] = $data['catalogId'];
         }
         $columns  = array_values($model->columnMap());
         unset($columns['isDeleted']);

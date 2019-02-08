@@ -368,13 +368,36 @@ CREATE TABLE `t_mall_products` (
   `barcode` varchar(60) DEFAULT not NULL COMMENT '商品编码',
   `origin_barcode` varchar(60) DEFAULT NULL COMMENT '原厂编码',
   `propset_id` int(11) NOT NULL comment '属性集合ID',
+  `img_propkey_id` int not null comment '不同图示的销售属性ID',
   `is_deleted` tinyint default 0 comment '是否删除',
   `create_time` int not null default 0 comment '创建时间',
   `update_time` int not null default 0 comment '修改时间',
+  `ref_product_id` int null default 0 comment '引用产品ID',
   primary key(`id`),
   index(`propset_id`),
   unique(`barcode`)
 ) COMMENT='商品档案';
+
+drop table if exists `t_mall_product_print`;
+create table `t_mall_product_print`(
+  `id` int(11) NOT NULL auto_increment,
+  `title` varchar(180) NOT NULL DEFAULT '' COMMENT '名称',
+  `product_id` int NOT NULL DEFAULT 0 COMMENT '商品id',
+  `propvalue_id` int not  NULL COMMENT '区分同个product，不同规格的属性值ID',
+  `print_x` int not null default 0 comment '打印区x座标',
+  `print_y` int not null default 0 comment '打印区y座标',
+  `print_width` int not null default 0 comment '打印区宽',
+  `print_height` int not null default 0 comment '打印区高',
+  `print_scale` float(11,2) not null default 1 comment '缩放比例',
+  `print_dpi` int not null comment '图DPI',
+  `setting_json` text null comment '设置JSON',
+  `print_method` tinyint comment '打印技术',
+  `img_url` varchar(200) not null comment '效果图示',
+  `sort_weight` int default 0 comment '排序权重',
+  `is_mockup` tinyint default 0 comment '是否模特图',
+  primary key(`id`),
+  index(`product_id`,`propvalue_id`,`is_mockup`,`print_method`)
+)comment='商品打印设定';
 
 drop table if exists `t_mall_product_props`;
 CREATE TABLE `t_mall_product_props` (
