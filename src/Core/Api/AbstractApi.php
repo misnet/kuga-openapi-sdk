@@ -306,7 +306,7 @@ abstract class AbstractApi extends AbstractService
      */
     protected function validMobile($countryCode, $mobile)
     {
-        $t = $this->_translator;
+        $t = $this->translator;
         if ( ! preg_match('/^(\d+)$/i', $countryCode)) {
             throw new ApiException($t->_('国家区号不正确'));
         }

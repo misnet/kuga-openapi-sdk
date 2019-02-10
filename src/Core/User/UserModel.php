@@ -117,6 +117,10 @@ class UserModel extends AbstractModel
             'model' => $this,
             'message' => $this->translator->_('用户名已存在')
         ]));
+        $validator->add('mobile', new UniquenessValidator([
+            'model' => $this,
+            'message' => $this->translator->_('手机号已存在')
+        ]));
         if ($this->email) {
             $validator->add('email', new EmailValidator([
                 'model' => $this,
@@ -143,7 +147,7 @@ class UserModel extends AbstractModel
     {
         $this->lastVisitTime || $this->lastVisitTime = time();
 
-        $this->token || $this->token = new \Phalcon\Db\RawValue ('default');
+        //$this->token || $this->token = new \Phalcon\Db\RawValue ('default');
 
         $this->lastVisitIp = \Qing\Lib\Utils::getClientIp();
 

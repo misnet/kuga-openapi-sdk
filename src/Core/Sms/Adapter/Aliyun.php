@@ -6,8 +6,9 @@ use Kuga\Core\Base\ErrorObject;
 
 use Kuga\Core\Sms\SendmsgLogsModel;
 use Kuga\Core\Sms\SmsInterface;
-use Sms\Request\V20160927\SingleSendSmsRequest;
-
+use AlibabaCloud\Client\AlibabaCloud;
+use AlibabaCloud\Client\Exception\ClientException;
+use AlibabaCloud\Client\Exception\ServerException;
 /**
  * 阿里云手机短信发送
  *
@@ -69,19 +70,13 @@ class Aliyun implements SmsInterface
         if (is_array($to)) {
             $to = join(',', $to);
         }
-        //require_once QING_CLASS_PATH.'/lib/aliyun-php-sdk-core/Config.php';
-        $iClientProfile = \DefaultProfile::getProfile(self::$config['regionId'], self::$config['appKey'], self::$config['appSecret']);
-        $client         = new \DefaultAcsClient($iClientProfile);
-        $request        = new SingleSendSmsRequest();
-        $request->setSignName(self::$config['signName']);/*签名名称*/
-        $request->setTemplateCode($tplId);/*模板code*/
-        $request->setRecNum(strval($to));
-        if ($params) {
-            if (is_array($params)) {
-                $params = json_encode($params);
-            }
-            $request->setParamString($params);
-        }
+
+        AlibabaCloud::accessKeyClient(self::$config['appKey'], self::$config['appSecret'])->regionId(self::$config['regionId'])->asGlobalClient();
+        $queryParams = [
+            'PhoneNumbers'=>strval($to),
+            'SignName'=>self::$config['signName'],
+            'TemplateCode'=>$tplId
+        ];
 
         $logModel = new SendmsgLogsModel();
         if ($logMsg == '') {
@@ -91,21 +86,45 @@ class Aliyun implements SmsInterface
         $logModel->msgSender = get_called_class();
         $logModel->msgTo     = $to;
         $logModel->sendTime  = time();
+
         try {
-            $response        = $client->getAcsResponse($request);
-            $logModel->msgId = $response->RequestId;
+            if ($params) {
+                if (is_array($params)) {
+                    $params = json_encode($params);
+                }
+                $queryParams['TemplateParam'] = $params;
+            }
+            $result = AlibabaCloud::rpcRequest()
+                ->product('Dysmsapi')
+                ->version('2017-05-25')
+                ->action('SendSms')
+                ->method('POST')
+                ->options([
+                    'query' => $queryParams
+                ])
+                ->request();
+            $response = $result->toArray();
+            $logModel->msgId = $response['RequestId'];
             $logModel->create();
             return true;
-        } catch (\Exception  $e) {
+        } catch (ClientException $e) {
             $errObj         = new ErrorObject();
             $errObj->line   = __LINE__;
             $errObj->method = __METHOD__;
             $errObj->class  = __CLASS__;
-            $errObj->msg    = '短信发送异常('.$e->getMessage().')';
+            $errObj->msg    = '短信发送异常('.$e->getErrorMessage().')';
             self::$di->getShared('eventsManager')->fire('qing:errorHappen', $errObj);
-
+            return false;
+        } catch (ServerException $e) {
+            $errObj         = new ErrorObject();
+            $errObj->line   = __LINE__;
+            $errObj->method = __METHOD__;
+            $errObj->class  = __CLASS__;
+            $errObj->msg    = '短信发送异常('.$e->getErrorMessage().')';
+            self::$di->getShared('eventsManager')->fire('qing:errorHappen', $errObj);
             return false;
         }
+
     }
 
     /**

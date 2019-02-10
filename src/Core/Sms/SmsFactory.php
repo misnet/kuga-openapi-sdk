@@ -11,7 +11,7 @@ class  SmsFactory{
      * @return \Kuga\Service\Sms\SmsInterface
      * @throws Exception
      */
-    public static function getAdapter($configFile,$adapterName='aliyun',$di=null){
+    public static function getAdapter($adapterName='aliyun',$configFile,$di=null){
 //        $loader = new \Phalcon\Loader();
 //        $loader->registerNamespaces(array(
 //            'Kuga\Service\Sms'=>'./Sms'
