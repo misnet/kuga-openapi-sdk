@@ -258,7 +258,7 @@ class Init
         self::$di->set(
             'sms', function () use ($config, $di) {
             $adapter = $config->sms->adapter;
-            $smsAdapter = \Kuga\Core\Sms\SmsFactory::getAdapter($adapter, $config->sms->{$adapter}, $di);
+            $smsAdapter = \Kuga\Core\Sms\SmsFactory::getAdapter($config->sms->{$adapter}, $adapter, $di);
 
             return $smsAdapter;
         }
