@@ -11,7 +11,7 @@ class Request
 {
 
     private $_data;
-
+    private $_secret;
     /**
      *
      * @var \Phalcon\Http\Request
@@ -31,6 +31,9 @@ class Request
     public function getAppKey()
     {
         return $this->_get('appkey');
+    }
+    public function getAppSecret(){
+        return $this->_secret;
     }
     public function getVersion()
     {
@@ -75,6 +78,7 @@ class Request
      */
     public function validate($secret)
     {
+        $this->_secret = $secret;
         $requestSign = $this->getSign();
         $data        = $this->_data;
 

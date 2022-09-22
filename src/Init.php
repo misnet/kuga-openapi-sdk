@@ -54,6 +54,8 @@ class Init
      */
     public static function setup($config = [],$di = null)
     {
+        //json_encode 带有小数的数字时，会变成14位长的精确值，需要修改php.ini的serialize_precision值
+        ini_set('serialize_precision',-1);
         self::$di = $di;
         if ( ! self::$di) {
             self::$di = new \Phalcon\DI\FactoryDefault();
@@ -178,11 +180,13 @@ class Init
             $dbRead = new \Phalcon\Db\Adapter\Pdo\Mysql(
                 ['host'         => $config->dbread->host, 'username' => $config->dbread->username, 'password' => $config->dbread->password,
                  'port'         => $config->dbread->port, 'dbname' => $config->dbread->dbname, 'charset' => $config->dbread->charset,
-                 'options'      => [\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone ="'.date('P').'"'],
-                 'dialectClass' => '\Phalcon\Db\Dialect\MysqlExtended']
+                 'options'      => [
+                     \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone ="'.date('P').'"'],
+                 'dialectClass' => self::initDialect()]
             );
             $dbRead->setEventsManager($eventsManager);
-
+            $dbRead->getInternalHandler()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+            $dbRead->getInternalHandler()->setAttribute(\PDO::ATTR_STRINGIFY_FETCHES, false);
             return $dbRead;
         }
         );
@@ -192,9 +196,11 @@ class Init
                 ['host'         => $config->dbwrite->host, 'username' => $config->dbwrite->username, 'password' => $config->dbwrite->password,
                  'port'         => $config->dbwrite->port, 'dbname' => $config->dbwrite->dbname, 'charset' => $config->dbwrite->charset,
                  'options'      => [\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone ="'.date('P').'"'],
-                 'dialectClass' => '\Phalcon\Db\Dialect\MysqlExtended']
+                 'dialectClass' => self::initDialect()]
             );
             $dbWrite->setEventsManager($eventsManager);
+            $dbWrite->getInternalHandler()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+            $dbWrite->getInternalHandler()->setAttribute(\PDO::ATTR_STRINGIFY_FETCHES, false);
 
             return $dbWrite;
         }
@@ -230,6 +236,16 @@ class Init
         \Phalcon\Mvc\Model::setup(
             ['updateSnapshotOnSave' => false,]
         );
+
+
+        $logger = new \Phalcon\Logger\Adapter\File(self::$tmpDir."/db.log");
+
+        $eventsManager->attach('db', function($event, $connection) use ($logger) {
+            if ($event->getType() == 'beforeQuery') {
+                $logger->log($connection->getSQLStatement(), \Phalcon\Logger::INFO);
+                $logger->log(print_r($connection->getSqlVariables(),true), \Phalcon\Logger::INFO);
+            }
+        });
     }
 
     /**
@@ -337,5 +353,17 @@ class Init
             $queue->setDI($di);
             return $queue;
         });
+    }
+
+    private static function initDialect(){
+        $dialect = new \Phalcon\Db\Dialect\MysqlExtended();
+        $dialect->registerCustomFunction('group_concat_orderby',function($dialect, $expression) {
+                $arguments = $expression['arguments'];
+                return sprintf(" group_concat(%s order by %s asc SEPARATOR %s) ",
+                    $dialect->getSqlExpression($arguments[0]),
+                    $dialect->getSqlExpression($arguments[1]),
+                    $dialect->getSqlExpression($arguments[2]));
+        });
+        return $dialect;
     }
 }

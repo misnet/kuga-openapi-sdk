@@ -12,6 +12,7 @@ use Kuga\Core\Base\AbstractService;
 use Kuga\Core\SysParams\SysParamsModel;
 use Kuga\Core\Api\Exception as ApiException;
 
+use Phalcon\Http\Client\Request as HttpClientRequest;
 abstract class AbstractApi extends AbstractService
 {
 
@@ -45,6 +46,8 @@ abstract class AbstractApi extends AbstractService
      * @var string
      */
     protected $_appKey;
+
+    protected $_appSecret;
 
     /**
      * 参数白名单
@@ -94,6 +97,12 @@ abstract class AbstractApi extends AbstractService
     {
         return $this->_appKey;
     }
+    public function getAppSecret(){
+        return $this->_appSecret;
+    }
+    public function setAppSecret($s){
+        $this->_appSecret = $s;
+    }
     public function getVersion(){
         return $this->_version;
     }
@@ -131,7 +140,7 @@ abstract class AbstractApi extends AbstractService
     /**
      * 初始化API传参
      *
-     * @param      $params
+     * @param  Array  $params
      * @param null $di
      * @param null $method
      */
@@ -170,12 +179,12 @@ abstract class AbstractApi extends AbstractService
     /**
      * 将API数组参数转为Parameter对象
      *
-     * @param unknown $data
+     * @param Array $data
      * @param unknown $whiteProps
      * @param string  $restrict
      *
      * @throws Exception
-     * @return \Kuga\Service\ApiV3\Parameter
+     * @return \Kuga\Core\Api\Parameter
      */
     protected function _toParamObject($data, $whiteProps = [], $restrict = false)
     {
@@ -297,7 +306,7 @@ abstract class AbstractApi extends AbstractService
      */
     protected function validMobile($countryCode, $mobile)
     {
-        $t = $this->_translator;
+        $t = $this->translator;
         if ( ! preg_match('/^(\d+)$/i', $countryCode)) {
             throw new ApiException($t->_('国家区号不正确'));
         }
@@ -322,5 +331,21 @@ abstract class AbstractApi extends AbstractService
         }
 
         return false;
+    }
+
+    protected function apiRequest($method,$params){
+
+        $params['appkey'] = $this->getAppKey();
+        $secret = $this->getAppSecret();
+        $params['access_token'] = $this->_accessToken;
+        $params['method'] = $method;
+        $params['sign']   = Request::createSign($secret, $params);
+
+
+        $provider = HttpClientRequest::getProvider();
+        $provider->setBaseUri('http://api.kuga.wang/');
+        $provider->header->set('Accept', 'application/json');
+        $response = $provider->post('/v3/gateway', $params);
+        return $response->body;
     }
 }

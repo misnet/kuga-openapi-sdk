@@ -6,10 +6,10 @@
     "require":{
         "php":">=5.6",
         "kuga/qing":"^0.8.2",
-        "phalcon/incubator": "^3.2",
+        "phalcon/incubator": "^3.4",
         "aliyuncs/oss-sdk-php": "~2.0",
         "qcloudsms/qcloudsms_php": "0.1.*",
-        "anchnet/aliyun-openapi-php-sdk":"dev-master"
+        "alibabacloud/client":">=1.0.7"
     },
     "autoload": {
         "psr-4": {

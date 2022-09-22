@@ -31,9 +31,11 @@ class MenuService extends AbstractService {
 	 * 取出所有菜单，并按层级排好顺序
 	 * @param integer $visible 是否可见，1:可见,0:不可见,null:所有
 	 * @param boolean $filterByAcc 是否用权限系统过滤，为true时，请先调用setAclService方法，注入ACL服务
+     * @param boolean $isTree 是否树状，默认false
+     * @param array $columns 要取的列
 	 * @return array
 	 */
-	public function getAll($visible=null,$filterByAcc=false){
+	public function getAll($visible=null,$filterByAcc=false,$isTree=false,$columns=[]){
 	    $cacheEngine = $this->_di->get('cache');
 	    if($filterByAcc && $this->_aclService){
     	    $keySeed = array(
@@ -45,11 +47,21 @@ class MenuService extends AbstractService {
 	    }
 	    $cacheId = self::PREFIX_MENULIST.md5(serialize($keySeed));
 	    $data = $cacheEngine->get($cacheId);
-	    if($data){
+	    if($data===0){
 	        $this->_menuObject = $data;
 	    }else{
     		$this->_menuObject= null;
-    		$this->_findChildMenu(0,$visible);
+    		if(!$isTree){
+    		    $this->_findChildMenu(0,$visible, $columns);
+            }else{
+    		    $this->_menuObject = $this->findByParentId(0,$visible, $columns);
+    		    if($this->_menuObject){
+    		        foreach($this->_menuObject as &$menu){
+                        $menu['children'] = $this->findByParentId($menu['id'],$visible, $columns);
+                        $menu['children']||$menu['children'] = [];
+                    }
+                }
+            }
     		//通知钩子
     		if($filterByAcc){
                 $this->_menuObject= $this->_filterMenus($this->_menuObject);
@@ -91,6 +103,13 @@ class MenuService extends AbstractService {
 						if(in_array($menu['id'],$accessableMenuIds)){
 							$menus[] = $menu;
 						}
+						if(isset($menu['children']) && is_array($menu['children']) && sizeof($menu['children'])>0){
+						    foreach($menu['children'] as $child){
+                                if(in_array($child['id'],$accessableMenuIds)){
+                                    $menu['children'][] = $child;
+                                }
+                            }
+                        }
 					}
 				}
 				$menuObjects = $menus;
@@ -178,12 +197,19 @@ class MenuService extends AbstractService {
 	 * @param number $pid 父菜单id
 	 * @return array
 	 */
-	public function findByParentId($pid=0){
+	public function findByParentId($pid=0,$visible=null,$columns=[]){
 		$model = new MenuModel();
+		$cond = 'parentId=:pid:';
+		$bind['pid']= $pid;
+		if(is_numeric($visible)){
+		    $cond.=' and display = :v:';
+		    $bind['v'] = $visible?1:0;
+        }
 		$rows = $model->find(array(
-				'conditions'=>'parentId=?1',
-				'bind'=>array(1=>$pid),
-				'order'=>'sortByWeight desc'
+				'conditions'=>$cond,
+				'bind'=>$bind,
+				'order'=>'sortByWeight desc',
+                'columns'=>empty($columns)?'*':$columns
 		));
 		if($rows){
 			return $rows->toArray();
@@ -194,8 +220,9 @@ class MenuService extends AbstractService {
 	 * 根据父级菜单id取出其下所有子孙级菜单
 	 * @param integer $parentId  父级菜单id
 	 * @param integer $visible $visible 是否可见，1:可见,0:不可见,null:所有
+     * @param array $columns 指定要取的列
 	 */
-	private function _findChildMenu($parentId,$visible=null){
+	private function _findChildMenu($parentId,$visible=null,$columns=[]){
 		$model = new MenuModel();
 		$condition = 'parentId=:pid:';
 		$bind['pid'] = $parentId;
@@ -204,12 +231,12 @@ class MenuService extends AbstractService {
 			$bind['v'] = $visible?1:0;
 		}
         $rows = [];
-		$result= $model->find(array('conditions'=>$condition,'bind'=>$bind,'order'=>'sortByWeight desc'));
+		$result= $model->find(array('conditions'=>$condition,'bind'=>$bind,'order'=>'sortByWeight desc','columns'=>empty($columns)?'*':$columns));
 		if($result){
 			$rows = $result->toArray();
 			foreach($rows as $row){
 				$this->_menuObject[] = $row;
-				$this->_findChildMenu($row['id'],$visible);
+				$this->_findChildMenu($row['id'],$visible,$columns);
 			}
 		}
 		//return $rows;

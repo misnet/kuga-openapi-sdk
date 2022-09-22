@@ -407,6 +407,7 @@ class ApiService
                 $modObj->setAccessTokenRequiredLevel($level);
                 $modObj->initParams($validParams, $method);
                 $modObj->setAppKey($appKey);
+                $modObj->setAppSecret($req->getAppSecret());
                 $modObj->setVersion($version);
                 $modObj->setLocale($locale);
                 self::$apiLoggerService->setAccessMemberId(
@@ -433,7 +434,7 @@ class ApiService
         } catch (\Exception $e) {
             $code = $e->getCode() ? $e->getCode() : ApiException::$EXCODE_UNKNOWN;
 
-            return self::_responseError($code, $e->getMessage());
+            return self::_responseError($code, $e->getMessage(),$e->getTraceAsString());
         }
     }
 

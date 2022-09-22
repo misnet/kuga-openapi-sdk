@@ -90,13 +90,18 @@ class Tencent implements SmsInterface {
                 $result = $sender->sendWithParam(GlobalVar::COUNTRY_CODE_CHINA,$to,$tplId,$sendParams,self::$config['signName']);
             }
             $response = json_decode($result,true);
-            $logModel->sendState = $response['result'];
-            if(intval($response['result'])!==0){
-                $logModel->errorInfo = isset($response['errmsg'])?$response['errmsg']:'未知错误';
+            if(isset($response['ErrorCode'])){
+                return false;
+            }else{
+
+                $logModel->sendState = $response['result'];
+                if(intval($response['result'])!==0){
+                    $logModel->errorInfo = isset($response['errmsg'])?$response['errmsg']:'未知错误';
+                }
+                $logModel->msgId = isset($response['sid'])?$response['sid']:'';
+                $logModel->create();
+                return $response['result']==0;
             }
-            $logModel->msgId = isset($response['sid'])?$response['sid']:'';
-            $logModel->create();
-            return $response['result']==0;
         }
         catch (\Exception  $e) {
             $errObj = new ErrorObject();

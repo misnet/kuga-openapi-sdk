@@ -11,7 +11,7 @@ use Kuga\Core\Api\Exception as ApiException;
 use Kuga\Core\Api\Request;
 
 
-
+use Kuga\Core\RegionModel;
 use Sts\Request\V20150401 as Sts;
 class System extends BaseApi {
 
@@ -47,7 +47,11 @@ class System extends BaseApi {
         $list || $list = [];
 
         foreach($list as &$item){
-            $childList = MenuModel::findByParentId($item['id']);
+            $childList = MenuModel::find([
+                'order'=>'sortByWeight desc',
+                'parentId=?1',
+                'bind'=>[1=>$item['id']]
+            ]);
             $item['children']= $childList->toArray();
             if(!$item['children']){
                 unset($item['children']);
@@ -220,6 +224,24 @@ class System extends BaseApi {
         }
         $data['sign']   = Request::createSign($apiKeys[$this->_appKey]['secret'], $data);
         return new Request($data);
+    }
+
+    /**
+     * 取得地区列表
+     * @return array
+     * @throws ApiException
+     */
+    public function getRegionList(){
+        $data = $this->_toParamObject($this->getParams());
+        $pid  = intval($data['parentId']);
+        $list = RegionModel::find([
+            'parentId=:pid:',
+            'bind'=>['pid'=>$pid],
+            'orderBy'=>'sortIndex',
+
+            'columns'=>['id','name','parentId','(select count(0) from '.RegionModel::class.' child where child.parentId='.RegionModel::class.'.id) as childNum']
+        ]);
+        return $list?$list->toArray():[];
     }
 
 }
